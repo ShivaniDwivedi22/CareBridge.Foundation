@@ -13,6 +13,7 @@ export const careRequestsTable = pgTable("care_requests", {
   budget: real("budget").notNull(),
   status: text("status").notNull().default("open"),
   seekerName: text("seeker_name").notNull(),
+  seekerClerkId: text("seeker_clerk_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

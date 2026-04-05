@@ -1,11 +1,13 @@
 import { Router, type IRouter } from "express";
-import { db, caregiversTable, careRequestsTable, bookingsTable, categoriesTable } from "@workspace/db";
+import { db, caregiversTable, careRequestsTable, bookingsTable, categoriesTable, reviewsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import {
   GetStatsOverviewResponse,
   GetFeaturedCaregiversResponse,
   GetRecentCareRequestsResponse,
+  GetProviderEarningsQueryParams,
+  GetProviderEarningsResponse,
 } from "@workspace/api-zod";
 import { inArray } from "drizzle-orm";
 
@@ -72,6 +74,56 @@ router.get("/stats/recent-requests", async (req, res): Promise<void> => {
   }));
 
   res.json(GetRecentCareRequestsResponse.parse(withCats));
+});
+
+router.get("/stats/provider-earnings", async (req, res): Promise<void> => {
+  const parsed = GetProviderEarningsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { caregiverId } = parsed.data;
+
+  const [caregiver] = await db
+    .select()
+    .from(caregiversTable)
+    .where(eq(caregiversTable.id, caregiverId));
+
+  if (!caregiver) {
+    res.status(404).json({ error: "Caregiver not found" });
+    return;
+  }
+
+  const bookings = await db
+    .select()
+    .from(bookingsTable)
+    .where(eq(bookingsTable.caregiverId, caregiverId));
+
+  const completedBookings = bookings.filter((b) => b.status === "completed").length;
+  const pendingBookings = bookings.filter((b) => b.status === "pending").length;
+  const confirmedBookings = bookings.filter((b) => b.status === "confirmed").length;
+  const totalEarnings = completedBookings * caregiver.hourlyRate * 8;
+
+  const reviews = await db
+    .select()
+    .from(reviewsTable)
+    .where(eq(reviewsTable.caregiverId, caregiverId));
+  const approvedReviews = reviews.filter((r) => r.status === "approved");
+  const averageRating =
+    approvedReviews.length > 0
+      ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length
+      : caregiver.rating;
+
+  res.json(
+    GetProviderEarningsResponse.parse({
+      totalEarnings,
+      completedBookings,
+      pendingBookings,
+      confirmedBookings,
+      averageRating: Math.round(averageRating * 10) / 10,
+      totalReviews: reviews.length,
+    })
+  );
 });
 
 export default router;

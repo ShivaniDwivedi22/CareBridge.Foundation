@@ -15,6 +15,9 @@ import CareRequestDetail from "@/pages/care-requests/[id]";
 import PostRequest from "@/pages/post-request";
 import BecomeCaregiver from "@/pages/become-caregiver";
 import Dashboard from "@/pages/dashboard";
+import MessagesPage from "@/pages/messages/index";
+import MessageThread from "@/pages/messages/[id]";
+import AdminPanel from "@/pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -61,7 +64,6 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
-// Protected route wrapper — redirects signed-out users to /sign-in
 function Protected({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
@@ -88,6 +90,15 @@ function Router() {
         </Route>
         <Route path="/dashboard">
           {() => <Protected component={Dashboard} />}
+        </Route>
+        <Route path="/messages">
+          {() => <Protected component={MessagesPage} />}
+        </Route>
+        <Route path="/messages/:id">
+          {() => <Protected component={MessageThread} />}
+        </Route>
+        <Route path="/admin">
+          {() => <Protected component={AdminPanel} />}
         </Route>
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />

@@ -13,4 +13,7 @@ export interface CreateCaregiverBody {
   categoryIds: number[];
   hourlyRate: number;
   yearsExperience: number;
+  certifications?: string;
+  languages?: string;
+  services?: string;
 }

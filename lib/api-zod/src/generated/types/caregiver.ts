@@ -20,5 +20,8 @@ export interface Caregiver {
   reviewCount: number;
   yearsExperience: number;
   isVerified: boolean;
+  certifications?: string | null;
+  languages?: string | null;
+  services?: string | null;
   createdAt: Date;
 }

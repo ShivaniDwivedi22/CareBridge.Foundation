@@ -9,17 +9,14 @@ servers:
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: caregivers
-    description: Caregiver profiles
   - name: care-requests
-    description: Care requests from seekers
   - name: bookings
-    description: Booking management
   - name: categories
-    description: Care categories
   - name: stats
-    description: Dashboard statistics
+  - name: reviews
+  - name: messages
+  - name: admin
 paths:
   /healthz:
     get:
@@ -191,6 +188,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: seekerClerkId
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: List of bookings
@@ -243,6 +244,207 @@ paths:
               schema:
                 $ref: "#/components/schemas/Booking"
 
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List reviews
+      parameters:
+        - name: caregiverId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Submit a review for a caregiver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/{id}/status:
+    patch:
+      operationId: updateReviewStatus
+      tags: [reviews]
+      summary: Update review status (admin moderation)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReviewStatusBody"
+      responses:
+        "200":
+          description: Updated review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [messages]
+      summary: List conversations for a user
+      parameters:
+        - name: clerkUserId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [messages]
+      summary: Create or get a conversation between two users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationBody"
+      responses:
+        "201":
+          description: Conversation created or found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /conversations/{id}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: Get messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /admin/caregivers:
+    get:
+      operationId: adminListCaregivers
+      tags: [admin]
+      summary: Admin list all caregivers with verification status
+      responses:
+        "200":
+          description: List of caregivers for admin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Caregiver"
+
+  /admin/caregivers/{id}/approve:
+    patch:
+      operationId: adminApproveCaregiver
+      tags: [admin]
+      summary: Approve a caregiver profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+
+  /admin/caregivers/{id}/reject:
+    patch:
+      operationId: adminRejectCaregiver
+      tags: [admin]
+      summary: Reject a caregiver profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+
   /stats/overview:
     get:
       operationId: getStatsOverview
@@ -285,6 +487,25 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CareRequest"
+
+  /stats/provider-earnings:
+    get:
+      operationId: getProviderEarnings
+      tags: [stats]
+      summary: Get earnings summary for a provider
+      parameters:
+        - name: caregiverId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Earnings summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderEarnings"
 
 components:
   schemas:
@@ -351,6 +572,15 @@ components:
           type: integer
         isVerified:
           type: boolean
+        certifications:
+          type: string
+          nullable: true
+        languages:
+          type: string
+          nullable: true
+        services:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -384,6 +614,12 @@ components:
           type: number
         yearsExperience:
           type: integer
+        certifications:
+          type: string
+        languages:
+          type: string
+        services:
+          type: string
       required:
         - name
         - bio
@@ -419,6 +655,9 @@ components:
           enum: [open, filled, cancelled]
         seekerName:
           type: string
+        seekerClerkId:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -453,6 +692,8 @@ components:
           type: number
         seekerName:
           type: string
+        seekerClerkId:
+          type: string
       required:
         - title
         - description
@@ -480,6 +721,10 @@ components:
           enum: [pending, confirmed, completed, cancelled]
         message:
           type: string
+          nullable: true
+        seekerClerkId:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -499,6 +744,8 @@ components:
           type: integer
         message:
           type: string
+        seekerClerkId:
+          type: string
       required:
         - caregiverId
         - careRequestId
@@ -511,6 +758,155 @@ components:
           enum: [pending, confirmed, completed, cancelled]
       required:
         - status
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        caregiverId:
+          type: integer
+        bookingId:
+          type: integer
+          nullable: true
+        rating:
+          type: integer
+        comment:
+          type: string
+        reviewerName:
+          type: string
+        reviewerClerkId:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caregiverId
+        - rating
+        - comment
+        - reviewerName
+        - status
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        caregiverId:
+          type: integer
+        bookingId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        reviewerName:
+          type: string
+        reviewerClerkId:
+          type: string
+      required:
+        - caregiverId
+        - rating
+        - comment
+        - reviewerName
+
+    UpdateReviewStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+      required:
+        - status
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        participantAClerkId:
+          type: string
+        participantBClerkId:
+          type: string
+        participantAName:
+          type: string
+        participantBName:
+          type: string
+        lastMessage:
+          type: string
+          nullable: true
+        lastMessageAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - participantAClerkId
+        - participantBClerkId
+        - participantAName
+        - participantBName
+        - createdAt
+
+    CreateConversationBody:
+      type: object
+      properties:
+        participantAClerkId:
+          type: string
+        participantBClerkId:
+          type: string
+        participantAName:
+          type: string
+        participantBName:
+          type: string
+      required:
+        - participantAClerkId
+        - participantBClerkId
+        - participantAName
+        - participantBName
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        senderClerkId:
+          type: string
+        senderName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - senderClerkId
+        - senderName
+        - content
+        - createdAt
+
+    SendMessageBody:
+      type: object
+      properties:
+        senderClerkId:
+          type: string
+        senderName:
+          type: string
+        content:
+          type: string
+      required:
+        - senderClerkId
+        - senderName
+        - content
 
     StatsOverview:
       type: object
@@ -541,3 +937,26 @@ components:
         - totalBookings
         - openRequests
         - categoryCounts
+
+    ProviderEarnings:
+      type: object
+      properties:
+        totalEarnings:
+          type: number
+        completedBookings:
+          type: integer
+        pendingBookings:
+          type: integer
+        confirmedBookings:
+          type: integer
+        averageRating:
+          type: number
+        totalReviews:
+          type: integer
+      required:
+        - totalEarnings
+        - completedBookings
+        - pendingBookings
+        - confirmedBookings
+        - averageRating
+        - totalReviews

@@ -20,5 +20,6 @@ export interface CareRequest {
   budget: number;
   status: CareRequestStatus;
   seekerName: string;
+  seekerClerkId?: string | null;
   createdAt: Date;
 }

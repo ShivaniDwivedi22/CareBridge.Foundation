@@ -14,6 +14,9 @@ export const caregiversTable = pgTable("caregivers", {
   reviewCount: integer("review_count").notNull().default(0),
   yearsExperience: integer("years_experience").notNull().default(0),
   isVerified: boolean("is_verified").notNull().default(false),
+  certifications: text("certifications"),
+  languages: text("languages"),
+  services: text("services"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

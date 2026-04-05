@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface CreateBookingBody {
+export interface CreateReviewBody {
   caregiverId: number;
-  careRequestId: number;
-  message?: string;
-  seekerClerkId?: string;
+  bookingId?: number;
+  rating: number;
+  comment: string;
+  reviewerName: string;
+  reviewerClerkId?: string;
 }

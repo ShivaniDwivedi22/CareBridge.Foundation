@@ -8,6 +8,7 @@ export const bookingsTable = pgTable("bookings", {
   careRequestId: integer("care_request_id").notNull(),
   status: text("status").notNull().default("pending"),
   message: text("message"),
+  seekerClerkId: text("seeker_clerk_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

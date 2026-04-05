@@ -15,4 +15,5 @@ export interface CreateCareRequestBody {
   endDate?: string;
   budget: number;
   seekerName: string;
+  seekerClerkId?: string;
 }

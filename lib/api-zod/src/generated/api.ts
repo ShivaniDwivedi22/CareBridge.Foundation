@@ -60,6 +60,9 @@ export const ListCaregiversResponseItem = zod.object({
   reviewCount: zod.number(),
   yearsExperience: zod.number(),
   isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListCaregiversResponse = zod.array(ListCaregiversResponseItem);
@@ -74,6 +77,9 @@ export const CreateCaregiverBody = zod.object({
   categoryIds: zod.array(zod.number()),
   hourlyRate: zod.number(),
   yearsExperience: zod.number(),
+  certifications: zod.string().optional(),
+  languages: zod.string().optional(),
+  services: zod.string().optional(),
 });
 
 /**
@@ -107,6 +113,9 @@ export const GetCaregiverResponse = zod.object({
   reviewCount: zod.number(),
   yearsExperience: zod.number(),
   isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -139,6 +148,7 @@ export const ListCareRequestsResponseItem = zod.object({
   budget: zod.number(),
   status: zod.enum(["open", "filled", "cancelled"]),
   seekerName: zod.string(),
+  seekerClerkId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListCareRequestsResponse = zod.array(ListCareRequestsResponseItem);
@@ -155,6 +165,7 @@ export const CreateCareRequestBody = zod.object({
   endDate: zod.string().optional(),
   budget: zod.number(),
   seekerName: zod.string(),
+  seekerClerkId: zod.string().optional(),
 });
 
 /**
@@ -185,6 +196,7 @@ export const GetCareRequestResponse = zod.object({
   budget: zod.number(),
   status: zod.enum(["open", "filled", "cancelled"]),
   seekerName: zod.string(),
+  seekerClerkId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -194,6 +206,7 @@ export const GetCareRequestResponse = zod.object({
 export const ListBookingsQueryParams = zod.object({
   caregiverId: zod.coerce.number().optional(),
   status: zod.coerce.string().optional(),
+  seekerClerkId: zod.coerce.string().optional(),
 });
 
 export const ListBookingsResponseItem = zod.object({
@@ -224,6 +237,9 @@ export const ListBookingsResponseItem = zod.object({
       reviewCount: zod.number(),
       yearsExperience: zod.number(),
       isVerified: zod.boolean(),
+      certifications: zod.string().nullish(),
+      languages: zod.string().nullish(),
+      services: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     })
     .optional(),
@@ -250,11 +266,13 @@ export const ListBookingsResponseItem = zod.object({
       budget: zod.number(),
       status: zod.enum(["open", "filled", "cancelled"]),
       seekerName: zod.string(),
+      seekerClerkId: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     })
     .optional(),
   status: zod.enum(["pending", "confirmed", "completed", "cancelled"]),
-  message: zod.string().optional(),
+  message: zod.string().nullish(),
+  seekerClerkId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListBookingsResponse = zod.array(ListBookingsResponseItem);
@@ -266,6 +284,7 @@ export const CreateBookingBody = zod.object({
   caregiverId: zod.number(),
   careRequestId: zod.number(),
   message: zod.string().optional(),
+  seekerClerkId: zod.string().optional(),
 });
 
 /**
@@ -307,6 +326,9 @@ export const UpdateBookingStatusResponse = zod.object({
       reviewCount: zod.number(),
       yearsExperience: zod.number(),
       isVerified: zod.boolean(),
+      certifications: zod.string().nullish(),
+      languages: zod.string().nullish(),
+      services: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     })
     .optional(),
@@ -333,11 +355,240 @@ export const UpdateBookingStatusResponse = zod.object({
       budget: zod.number(),
       status: zod.enum(["open", "filled", "cancelled"]),
       seekerName: zod.string(),
+      seekerClerkId: zod.string().nullish(),
       createdAt: zod.coerce.date(),
     })
     .optional(),
   status: zod.enum(["pending", "confirmed", "completed", "cancelled"]),
-  message: zod.string().optional(),
+  message: zod.string().nullish(),
+  seekerClerkId: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List reviews
+ */
+export const ListReviewsQueryParams = zod.object({
+  caregiverId: zod.coerce.number().optional(),
+  status: zod.coerce.string().optional(),
+});
+
+export const ListReviewsResponseItem = zod.object({
+  id: zod.number(),
+  caregiverId: zod.number(),
+  bookingId: zod.number().nullish(),
+  rating: zod.number(),
+  comment: zod.string(),
+  reviewerName: zod.string(),
+  reviewerClerkId: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected"]),
+  createdAt: zod.coerce.date(),
+});
+export const ListReviewsResponse = zod.array(ListReviewsResponseItem);
+
+/**
+ * @summary Submit a review for a caregiver
+ */
+export const CreateReviewBody = zod.object({
+  caregiverId: zod.number(),
+  bookingId: zod.number().optional(),
+  rating: zod.number(),
+  comment: zod.string(),
+  reviewerName: zod.string(),
+  reviewerClerkId: zod.string().optional(),
+});
+
+/**
+ * @summary Update review status (admin moderation)
+ */
+export const UpdateReviewStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateReviewStatusBody = zod.object({
+  status: zod.enum(["pending", "approved", "rejected"]),
+});
+
+export const UpdateReviewStatusResponse = zod.object({
+  id: zod.number(),
+  caregiverId: zod.number(),
+  bookingId: zod.number().nullish(),
+  rating: zod.number(),
+  comment: zod.string(),
+  reviewerName: zod.string(),
+  reviewerClerkId: zod.string().nullish(),
+  status: zod.enum(["pending", "approved", "rejected"]),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List conversations for a user
+ */
+export const ListConversationsQueryParams = zod.object({
+  clerkUserId: zod.coerce.string(),
+});
+
+export const ListConversationsResponseItem = zod.object({
+  id: zod.number(),
+  participantAClerkId: zod.string(),
+  participantBClerkId: zod.string(),
+  participantAName: zod.string(),
+  participantBName: zod.string(),
+  lastMessage: zod.string().nullish(),
+  lastMessageAt: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListConversationsResponse = zod.array(
+  ListConversationsResponseItem,
+);
+
+/**
+ * @summary Create or get a conversation between two users
+ */
+export const CreateConversationBody = zod.object({
+  participantAClerkId: zod.string(),
+  participantBClerkId: zod.string(),
+  participantAName: zod.string(),
+  participantBName: zod.string(),
+});
+
+/**
+ * @summary Get messages in a conversation
+ */
+export const ListMessagesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListMessagesResponseItem = zod.object({
+  id: zod.number(),
+  conversationId: zod.number(),
+  senderClerkId: zod.string(),
+  senderName: zod.string(),
+  content: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
+
+/**
+ * @summary Send a message in a conversation
+ */
+export const SendMessageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SendMessageBody = zod.object({
+  senderClerkId: zod.string(),
+  senderName: zod.string(),
+  content: zod.string(),
+});
+
+/**
+ * @summary Admin list all caregivers with verification status
+ */
+export const AdminListCaregiversResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  bio: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  location: zod.string(),
+  categoryIds: zod.array(zod.number()),
+  categories: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        name: zod.string(),
+        slug: zod.string(),
+        description: zod.string(),
+        icon: zod.string(),
+        caregiverCount: zod.number(),
+      }),
+    )
+    .optional(),
+  hourlyRate: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  yearsExperience: zod.number(),
+  isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const AdminListCaregiversResponse = zod.array(
+  AdminListCaregiversResponseItem,
+);
+
+/**
+ * @summary Approve a caregiver profile
+ */
+export const AdminApproveCaregiverParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminApproveCaregiverResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  bio: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  location: zod.string(),
+  categoryIds: zod.array(zod.number()),
+  categories: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        name: zod.string(),
+        slug: zod.string(),
+        description: zod.string(),
+        icon: zod.string(),
+        caregiverCount: zod.number(),
+      }),
+    )
+    .optional(),
+  hourlyRate: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  yearsExperience: zod.number(),
+  isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Reject a caregiver profile
+ */
+export const AdminRejectCaregiverParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminRejectCaregiverResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  bio: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  location: zod.string(),
+  categoryIds: zod.array(zod.number()),
+  categories: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        name: zod.string(),
+        slug: zod.string(),
+        description: zod.string(),
+        icon: zod.string(),
+        caregiverCount: zod.number(),
+      }),
+    )
+    .optional(),
+  hourlyRate: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  yearsExperience: zod.number(),
+  isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -384,6 +635,9 @@ export const GetFeaturedCaregiversResponseItem = zod.object({
   reviewCount: zod.number(),
   yearsExperience: zod.number(),
   isVerified: zod.boolean(),
+  certifications: zod.string().nullish(),
+  languages: zod.string().nullish(),
+  services: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const GetFeaturedCaregiversResponse = zod.array(
@@ -414,8 +668,25 @@ export const GetRecentCareRequestsResponseItem = zod.object({
   budget: zod.number(),
   status: zod.enum(["open", "filled", "cancelled"]),
   seekerName: zod.string(),
+  seekerClerkId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const GetRecentCareRequestsResponse = zod.array(
   GetRecentCareRequestsResponseItem,
 );
+
+/**
+ * @summary Get earnings summary for a provider
+ */
+export const GetProviderEarningsQueryParams = zod.object({
+  caregiverId: zod.coerce.number(),
+});
+
+export const GetProviderEarningsResponse = zod.object({
+  totalEarnings: zod.number(),
+  completedBookings: zod.number(),
+  pendingBookings: zod.number(),
+  confirmedBookings: zod.number(),
+  averageRating: zod.number(),
+  totalReviews: zod.number(),
+});

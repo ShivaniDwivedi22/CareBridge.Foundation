@@ -16,6 +16,7 @@ export interface Booking {
   careRequestId: number;
   careRequest?: CareRequest;
   status: BookingStatus;
-  message?: string;
+  message?: string | null;
+  seekerClerkId?: string | null;
   createdAt: Date;
 }

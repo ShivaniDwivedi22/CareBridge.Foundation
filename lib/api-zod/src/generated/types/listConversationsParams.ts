@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface CreateBookingBody {
-  caregiverId: number;
-  careRequestId: number;
-  message?: string;
-  seekerClerkId?: string;
-}
+export type ListConversationsParams = {
+  clerkUserId: string;
+};

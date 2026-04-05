@@ -5,6 +5,9 @@ import caregiversRouter from "./caregivers";
 import careRequestsRouter from "./care-requests";
 import bookingsRouter from "./bookings";
 import statsRouter from "./stats";
+import reviewsRouter from "./reviews";
+import conversationsRouter from "./conversations";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -14,5 +17,8 @@ router.use(caregiversRouter);
 router.use(careRequestsRouter);
 router.use(bookingsRouter);
 router.use(statsRouter);
+router.use(reviewsRouter);
+router.use(conversationsRouter);
+router.use(adminRouter);
 
 export default router;

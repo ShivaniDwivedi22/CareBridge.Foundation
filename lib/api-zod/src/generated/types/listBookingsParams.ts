@@ -9,4 +9,5 @@
 export type ListBookingsParams = {
   caregiverId?: number;
   status?: string;
+  seekerClerkId?: string;
 };

@@ -31,6 +31,9 @@ export interface Caregiver {
   reviewCount: number;
   yearsExperience: number;
   isVerified: boolean;
+  certifications?: string | null;
+  languages?: string | null;
+  services?: string | null;
   createdAt: string;
 }
 
@@ -41,6 +44,9 @@ export interface CreateCaregiverBody {
   categoryIds: number[];
   hourlyRate: number;
   yearsExperience: number;
+  certifications?: string;
+  languages?: string;
+  services?: string;
 }
 
 export type CareRequestStatus =
@@ -64,6 +70,7 @@ export interface CareRequest {
   budget: number;
   status: CareRequestStatus;
   seekerName: string;
+  seekerClerkId?: string | null;
   createdAt: string;
 }
 
@@ -76,6 +83,7 @@ export interface CreateCareRequestBody {
   endDate?: string;
   budget: number;
   seekerName: string;
+  seekerClerkId?: string;
 }
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
@@ -94,7 +102,8 @@ export interface Booking {
   careRequestId: number;
   careRequest?: CareRequest;
   status: BookingStatus;
-  message?: string;
+  message?: string | null;
+  seekerClerkId?: string | null;
   createdAt: string;
 }
 
@@ -102,6 +111,7 @@ export interface CreateBookingBody {
   caregiverId: number;
   careRequestId: number;
   message?: string;
+  seekerClerkId?: string;
 }
 
 export type UpdateBookingStatusBodyStatus =
@@ -118,6 +128,81 @@ export interface UpdateBookingStatusBody {
   status: UpdateBookingStatusBodyStatus;
 }
 
+export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+
+export const ReviewStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface Review {
+  id: number;
+  caregiverId: number;
+  bookingId?: number | null;
+  rating: number;
+  comment: string;
+  reviewerName: string;
+  reviewerClerkId?: string | null;
+  status: ReviewStatus;
+  createdAt: string;
+}
+
+export interface CreateReviewBody {
+  caregiverId: number;
+  bookingId?: number;
+  rating: number;
+  comment: string;
+  reviewerName: string;
+  reviewerClerkId?: string;
+}
+
+export type UpdateReviewStatusBodyStatus =
+  (typeof UpdateReviewStatusBodyStatus)[keyof typeof UpdateReviewStatusBodyStatus];
+
+export const UpdateReviewStatusBodyStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateReviewStatusBody {
+  status: UpdateReviewStatusBodyStatus;
+}
+
+export interface Conversation {
+  id: number;
+  participantAClerkId: string;
+  participantBClerkId: string;
+  participantAName: string;
+  participantBName: string;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateConversationBody {
+  participantAClerkId: string;
+  participantBClerkId: string;
+  participantAName: string;
+  participantBName: string;
+}
+
+export interface Message {
+  id: number;
+  conversationId: number;
+  senderClerkId: string;
+  senderName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface SendMessageBody {
+  senderClerkId: string;
+  senderName: string;
+  content: string;
+}
+
 export type StatsOverviewCategoryCountsItem = {
   categoryName: string;
   count: number;
@@ -129,6 +214,15 @@ export interface StatsOverview {
   totalBookings: number;
   openRequests: number;
   categoryCounts: StatsOverviewCategoryCountsItem[];
+}
+
+export interface ProviderEarnings {
+  totalEarnings: number;
+  completedBookings: number;
+  pendingBookings: number;
+  confirmedBookings: number;
+  averageRating: number;
+  totalReviews: number;
 }
 
 export type ListCaregiversParams = {
@@ -145,4 +239,18 @@ export type ListCareRequestsParams = {
 export type ListBookingsParams = {
   caregiverId?: number;
   status?: string;
+  seekerClerkId?: string;
+};
+
+export type ListReviewsParams = {
+  caregiverId?: number;
+  status?: string;
+};
+
+export type ListConversationsParams = {
+  clerkUserId: string;
+};
+
+export type GetProviderEarningsParams = {
+  caregiverId: number;
 };

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { HeartHandshake, Menu, X, UserCircle, Briefcase, LayoutDashboard } from "lucide-react";
+import { HeartHandshake, Menu, X, UserCircle, Briefcase, LayoutDashboard, MessageCircle, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Show, useUser, useClerk } from "@clerk/react";

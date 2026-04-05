@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface CreateBookingBody {
+export type GetProviderEarningsParams = {
   caregiverId: number;
-  careRequestId: number;
-  message?: string;
-  seekerClerkId?: string;
-}
+};
