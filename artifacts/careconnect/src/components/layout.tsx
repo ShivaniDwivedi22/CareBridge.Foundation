@@ -2,6 +2,58 @@ import { Link, useLocation } from "wouter";
 import { HeartHandshake, Menu, X, UserCircle, Briefcase, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Show, useUser, useClerk } from "@clerk/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+function UserProfileDropdown() {
+  const { user } = useUser();
+  const clerk = useClerk();
+
+  return (
+    <div className="flex items-center gap-3 ml-4 border-l border-border/40 pl-4">
+      <Avatar className="h-8 w-8 border border-border">
+        <AvatarImage src={user?.imageUrl} />
+        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+          {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress[0].toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <span className="text-sm font-medium text-foreground max-w-[120px] truncate">
+        {user?.firstName ?? user?.emailAddresses[0]?.emailAddress}
+      </span>
+      <Button variant="ghost" size="sm" onClick={() => clerk.signOut()} className="text-muted-foreground hover:text-foreground">
+        Sign Out
+      </Button>
+    </div>
+  );
+}
+
+function MobileUserActions({ closeMenu }: { closeMenu: () => void }) {
+  const { user } = useUser();
+  const clerk = useClerk();
+  
+  return (
+    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
+      <div className="flex items-center gap-3 p-2">
+        <Avatar className="h-8 w-8 border border-border">
+          <AvatarImage src={user?.imageUrl} />
+          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress[0].toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm font-medium text-foreground truncate">
+          {user?.firstName ?? user?.emailAddresses[0]?.emailAddress}
+        </span>
+      </div>
+      <Button 
+        variant="ghost" 
+        className="w-full justify-start text-muted-foreground" 
+        onClick={() => { clerk.signOut(); closeMenu(); }}
+      >
+        Sign Out
+      </Button>
+    </div>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -42,12 +94,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" asChild className="font-medium">
-                <Link href="/become-caregiver">Become a Caregiver</Link>
-              </Button>
-              <Button asChild className="rounded-full shadow-sm hover-elevate">
-                <Link href="/post-request">Post a Request</Link>
-              </Button>
+              <Show when="signed-out">
+                <Button variant="ghost" asChild className="font-medium">
+                  <Link href="/sign-in">Sign In</Link>
+                </Button>
+                <Button variant="outline" asChild className="font-medium">
+                  <Link href="/sign-up">Sign Up</Link>
+                </Button>
+                <Button asChild className="rounded-full shadow-sm hover-elevate">
+                  <Link href="/sign-in">Post a Request</Link>
+                </Button>
+              </Show>
+              <Show when="signed-in">
+                <Button variant="ghost" asChild className="font-medium">
+                  <Link href="/become-caregiver">Become a Caregiver</Link>
+                </Button>
+                <Button asChild className="rounded-full shadow-sm hover-elevate">
+                  <Link href="/post-request">Post a Request</Link>
+                </Button>
+                <UserProfileDropdown />
+              </Show>
             </div>
           </nav>
 
@@ -80,16 +146,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               ))}
               <div className="grid gap-2 pt-4 border-t border-border/40 mt-2">
-                <Button variant="outline" asChild className="w-full justify-center">
-                  <Link href="/become-caregiver" onClick={() => setIsMobileMenuOpen(false)}>
-                    Become a Caregiver
-                  </Link>
-                </Button>
-                <Button asChild className="w-full justify-center rounded-full">
-                  <Link href="/post-request" onClick={() => setIsMobileMenuOpen(false)}>
-                    Post a Request
-                  </Link>
-                </Button>
+                <Show when="signed-out">
+                  <Button variant="ghost" asChild className="w-full justify-center">
+                    <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                  </Button>
+                  <Button variant="outline" asChild className="w-full justify-center">
+                    <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                  </Button>
+                  <Button asChild className="w-full justify-center rounded-full">
+                    <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>
+                      Post a Request
+                    </Link>
+                  </Button>
+                </Show>
+                <Show when="signed-in">
+                  <Button variant="outline" asChild className="w-full justify-center">
+                    <Link href="/become-caregiver" onClick={() => setIsMobileMenuOpen(false)}>
+                      Become a Caregiver
+                    </Link>
+                  </Button>
+                  <Button asChild className="w-full justify-center rounded-full">
+                    <Link href="/post-request" onClick={() => setIsMobileMenuOpen(false)}>
+                      Post a Request
+                    </Link>
+                  </Button>
+                  <MobileUserActions closeMenu={() => setIsMobileMenuOpen(false)} />
+                </Show>
               </div>
             </nav>
           </div>
