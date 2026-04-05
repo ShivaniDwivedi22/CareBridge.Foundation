@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "_P_QveRJNirksyFXL_j55"
+uri = "file://artifacts/careconnect/src/assets/images/caregiver-1.png"
+type = "image"
+title = "Elderly care specialist portrait"
+
+[[generated]]
+id = "0eLb9B2jI4XYyegemrNOM"
+uri = "file://artifacts/careconnect/src/assets/images/caregiver-2.png"
+type = "image"
+title = "Pediatric nurse portrait"
+
+[[generated]]
+id = "QrLMCVvVHIdQaiWBf6YCG"
+uri = "file://artifacts/careconnect/src/assets/images/hero-home.png"
+type = "image"
+title = "Hero candid caregiving moment"

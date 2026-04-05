@@ -3,20 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CareConnect API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: caregivers
+    description: Caregiver profiles
+  - name: care-requests
+    description: Care requests from seekers
+  - name: bookings
+    description: Booking management
+  - name: categories
+    description: Care categories
+  - name: stats
+    description: Dashboard statistics
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +33,259 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all care categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /caregivers:
+    get:
+      operationId: listCaregivers
+      tags: [caregivers]
+      summary: List caregivers with optional filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: minRating
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of caregivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Caregiver"
+    post:
+      operationId: createCaregiver
+      tags: [caregivers]
+      summary: Register as a caregiver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaregiverBody"
+      responses:
+        "201":
+          description: Caregiver created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+
+  /caregivers/{id}:
+    get:
+      operationId: getCaregiver
+      tags: [caregivers]
+      summary: Get a caregiver by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Caregiver details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+        "404":
+          description: Not found
+
+  /care-requests:
+    get:
+      operationId: listCareRequests
+      tags: [care-requests]
+      summary: List care requests
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of care requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareRequest"
+    post:
+      operationId: createCareRequest
+      tags: [care-requests]
+      summary: Post a care request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCareRequestBody"
+      responses:
+        "201":
+          description: Care request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareRequest"
+
+  /care-requests/{id}:
+    get:
+      operationId: getCareRequest
+      tags: [care-requests]
+      summary: Get a care request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Care request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareRequest"
+        "404":
+          description: Not found
+
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings
+      parameters:
+        - name: caregiverId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingBody"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingStatusBody"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /stats/overview:
+    get:
+      operationId: getStatsOverview
+      tags: [stats]
+      summary: Get dashboard overview stats
+      responses:
+        "200":
+          description: Overview statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsOverview"
+
+  /stats/featured-caregivers:
+    get:
+      operationId: getFeaturedCaregivers
+      tags: [stats]
+      summary: Get top-rated featured caregivers
+      responses:
+        "200":
+          description: Featured caregivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Caregiver"
+
+  /stats/recent-requests:
+    get:
+      operationId: getRecentCareRequests
+      tags: [stats]
+      summary: Get recently posted care requests
+      responses:
+        "200":
+          description: Recent care requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareRequest"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +296,248 @@ components:
       required:
         - status
 
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        caregiverCount:
+          type: integer
+      required:
+        - id
+        - name
+        - slug
+        - description
+        - icon
+        - caregiverCount
+
+    Caregiver:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        location:
+          type: string
+        categoryIds:
+          type: array
+          items:
+            type: integer
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+        hourlyRate:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        yearsExperience:
+          type: integer
+        isVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - bio
+        - location
+        - categoryIds
+        - hourlyRate
+        - rating
+        - reviewCount
+        - yearsExperience
+        - isVerified
+        - createdAt
+
+    CreateCaregiverBody:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        location:
+          type: string
+        categoryIds:
+          type: array
+          items:
+            type: integer
+        hourlyRate:
+          type: number
+        yearsExperience:
+          type: integer
+      required:
+        - name
+        - bio
+        - location
+        - categoryIds
+        - hourlyRate
+        - yearsExperience
+
+    CareRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: integer
+        category:
+          $ref: "#/components/schemas/Category"
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+          nullable: true
+        budget:
+          type: number
+        status:
+          type: string
+          enum: [open, filled, cancelled]
+        seekerName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - categoryId
+        - location
+        - startDate
+        - budget
+        - status
+        - seekerName
+        - createdAt
+
+    CreateCareRequestBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: integer
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        budget:
+          type: number
+        seekerName:
+          type: string
+      required:
+        - title
+        - description
+        - categoryId
+        - location
+        - startDate
+        - budget
+        - seekerName
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        caregiverId:
+          type: integer
+        caregiver:
+          $ref: "#/components/schemas/Caregiver"
+        careRequestId:
+          type: integer
+        careRequest:
+          $ref: "#/components/schemas/CareRequest"
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - caregiverId
+        - careRequestId
+        - status
+        - createdAt
+
+    CreateBookingBody:
+      type: object
+      properties:
+        caregiverId:
+          type: integer
+        careRequestId:
+          type: integer
+        message:
+          type: string
+      required:
+        - caregiverId
+        - careRequestId
+
+    UpdateBookingStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+      required:
+        - status
+
+    StatsOverview:
+      type: object
+      properties:
+        totalCaregivers:
+          type: integer
+        totalCareRequests:
+          type: integer
+        totalBookings:
+          type: integer
+        openRequests:
+          type: integer
+        categoryCounts:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryName:
+                type: string
+              count:
+                type: integer
+            required:
+              - categoryName
+              - count
+      required:
+        - totalCaregivers
+        - totalCareRequests
+        - totalBookings
+        - openRequests
+        - categoryCounts
