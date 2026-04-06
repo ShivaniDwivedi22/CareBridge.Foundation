@@ -323,36 +323,38 @@ export default function BecomeCaregiver() {
                           A Government ID and Profile Photo will be required during identity verification after registration.
                         </div>
 
-                        <FormField control={form.control} name="categoryIds" render={() => (
-                          <FormItem>
-                            <div className="mb-3">
-                              <FormLabel className="text-base">Care Specialties <span className="text-red-500">*</span></FormLabel>
-                              <FormDescription>Select all categories where you offer professional services.</FormDescription>
-                            </div>
-                            <div className="grid sm:grid-cols-2 gap-2 bg-muted/20 p-4 rounded-xl border border-border/40">
-                              {categories?.map((item) => (
-                                <FormField key={item.id} control={form.control} name="categoryIds" render={({ field }) => (
-                                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-1">
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(item.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...field.value, item.id])
-                                            : field.onChange(field.value?.filter((v) => v !== item.id));
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer text-sm">
-                                      {item.name}
-                                    </FormLabel>
-                                  </FormItem>
-                                )} />
-                              ))}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
+                        <FormItem>
+                          <div className="mb-3">
+                            <FormLabel className="text-base">Care Specialties <span className="text-red-500">*</span></FormLabel>
+                            <FormDescription>Select all categories where you offer professional services.</FormDescription>
+                          </div>
+                          <div className="grid sm:grid-cols-2 gap-2 bg-muted/20 p-4 rounded-xl border border-border/40">
+                            {categories?.map((item) => (
+                              <div key={item.id} className="flex flex-row items-center space-x-3 py-1.5">
+                                <Checkbox
+                                  id={`cat-${item.id}`}
+                                  checked={selectedCategoryIds?.includes(item.id)}
+                                  onCheckedChange={(checked) => {
+                                    const vals = form.getValues("categoryIds");
+                                    if (checked) {
+                                      form.setValue("categoryIds", [...vals, item.id], { shouldValidate: true });
+                                    } else {
+                                      form.setValue("categoryIds", vals.filter((v) => v !== item.id), { shouldValidate: true });
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`cat-${item.id}`} className="font-normal cursor-pointer text-sm leading-none">
+                                  {item.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          {form.formState.errors.categoryIds && (
+                            <p className="text-sm font-medium text-destructive mt-2">
+                              {form.formState.errors.categoryIds.message as string}
+                            </p>
+                          )}
+                        </FormItem>
                       </>
                     )}
 
