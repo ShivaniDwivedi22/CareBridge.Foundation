@@ -64,6 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: "Care Requests", href: "/care-requests", icon: Briefcase },
     { name: "Messages", href: "/messages", icon: MessageCircle, authOnly: true },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, authOnly: true },
+    { name: "Payments", href: "/payments/history", icon: ShieldCheck, authOnly: true },
   ];
 
   return (

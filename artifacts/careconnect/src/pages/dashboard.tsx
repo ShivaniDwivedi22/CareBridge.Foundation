@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Briefcase, CalendarCheck, FileText, CheckCircle, XCircle } from "lucide-react";
+import { Users, Briefcase, CalendarCheck, FileText, CheckCircle, XCircle, CreditCard, ReceiptText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: stats, isLoading: isLoadingStats } = useGetStatsOverview({
     query: { queryKey: getGetStatsOverviewQueryKey() }
@@ -152,7 +154,7 @@ export default function Dashboard() {
                       </div>
                       
                       {booking.status === 'pending' && (
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex flex-wrap gap-2 shrink-0">
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -170,10 +172,18 @@ export default function Dashboard() {
                           >
                             <CheckCircle className="w-4 h-4 mr-1" /> Accept
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-primary hover:text-primary"
+                            onClick={() => setLocation(`/checkout?bookingId=${booking.id}&amount=${Math.round((booking.caregiver?.hourlyRate ?? 25) * 8 * 100)}&caregiver=${encodeURIComponent(booking.caregiver?.name ?? '')}&service=${encodeURIComponent(booking.careRequest?.title ?? 'Care Service')}`)}
+                          >
+                            <CreditCard className="w-4 h-4 mr-1" /> Pay
+                          </Button>
                         </div>
                       )}
                       {booking.status === 'confirmed' && (
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex flex-wrap gap-2 shrink-0">
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -181,6 +191,22 @@ export default function Dashboard() {
                             disabled={updateBooking.isPending}
                           >
                             Mark Completed
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-primary"
+                            onClick={() => setLocation(`/checkout?bookingId=${booking.id}&amount=${Math.round((booking.caregiver?.hourlyRate ?? 25) * 8 * 100)}&caregiver=${encodeURIComponent(booking.caregiver?.name ?? '')}&service=${encodeURIComponent(booking.careRequest?.title ?? 'Care Service')}`)}
+                          >
+                            <CreditCard className="w-4 h-4 mr-1" /> Pay
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => setLocation(`/bookings/cancel?bookingId=${booking.id}&caregiver=${encodeURIComponent(booking.caregiver?.name ?? '')}&hours=72`)}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" /> Cancel
                           </Button>
                         </div>
                       )}

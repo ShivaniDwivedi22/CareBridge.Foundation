@@ -18,6 +18,9 @@ import Dashboard from "@/pages/dashboard";
 import MessagesPage from "@/pages/messages/index";
 import MessageThread from "@/pages/messages/[id]";
 import AdminPanel from "@/pages/admin";
+import CheckoutPage from "@/pages/payments/checkout";
+import PaymentHistory from "@/pages/payments/history";
+import CancelBooking from "@/pages/bookings/cancel";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +103,11 @@ function Router() {
         <Route path="/admin">
           {() => <Protected component={AdminPanel} />}
         </Route>
+        <Route path="/checkout" component={CheckoutPage} />
+        <Route path="/payments/history">
+          {() => <Protected component={PaymentHistory} />}
+        </Route>
+        <Route path="/bookings/cancel" component={CancelBooking} />
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route component={NotFound} />
