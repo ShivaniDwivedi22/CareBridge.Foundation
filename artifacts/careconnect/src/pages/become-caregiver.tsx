@@ -323,10 +323,10 @@ export default function BecomeCaregiver() {
                           A Government ID and Profile Photo will be required during identity verification after registration.
                         </div>
 
-                        <FormItem>
+                        <div className="space-y-2">
                           <div className="mb-3">
-                            <FormLabel className="text-base">Care Specialties <span className="text-red-500">*</span></FormLabel>
-                            <FormDescription>Select all categories where you offer professional services.</FormDescription>
+                            <p className="text-base font-medium leading-none">Care Specialties <span className="text-red-500">*</span></p>
+                            <p className="text-sm text-muted-foreground mt-1">Select all categories where you offer professional services.</p>
                           </div>
                           <div className="grid sm:grid-cols-2 gap-2 bg-muted/20 p-4 rounded-xl border border-border/40">
                             {categories?.map((item) => (
@@ -354,7 +354,7 @@ export default function BecomeCaregiver() {
                               {form.formState.errors.categoryIds.message as string}
                             </p>
                           )}
-                        </FormItem>
+                        </div>
                       </>
                     )}
 
