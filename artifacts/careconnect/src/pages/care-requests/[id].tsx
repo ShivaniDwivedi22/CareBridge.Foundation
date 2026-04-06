@@ -109,6 +109,15 @@ export default function CareRequestDetail() {
                   <div className="text-sm text-muted-foreground">{new Date(request.startDate).toLocaleDateString()}</div>
                 </div>
               </div>
+              {request.durationHours && (
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="font-medium">Duration per Session</div>
+                    <div className="text-sm text-muted-foreground">{request.durationHours} hour{request.durationHours !== 1 ? "s" : ""}</div>
+                  </div>
+                </div>
+              )}
               {request.endDate && (
                 <div className="flex items-start gap-3">
                   <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />

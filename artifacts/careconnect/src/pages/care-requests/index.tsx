@@ -101,6 +101,12 @@ export default function CareRequests() {
                       <Clock className="w-4 h-4 text-primary/70" />
                       Starts {new Date(request.startDate).toLocaleDateString()}
                     </span>
+                    {request.durationHours && (
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-primary/70" />
+                        {request.durationHours} hr{request.durationHours !== 1 ? "s" : ""}/session
+                      </span>
+                    )}
                     <span className="flex items-center gap-1.5">
                       <User className="w-4 h-4 text-primary/70" />
                       {request.seekerName}

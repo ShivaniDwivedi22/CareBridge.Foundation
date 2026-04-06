@@ -18,6 +18,7 @@ export interface CareRequest {
   startDate: string;
   endDate?: string | null;
   budget: number;
+  durationHours?: number | null;
   status: CareRequestStatus;
   seekerName: string;
   seekerClerkId?: string | null;

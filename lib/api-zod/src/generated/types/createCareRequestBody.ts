@@ -14,6 +14,7 @@ export interface CreateCareRequestBody {
   startDate: string;
   endDate?: string;
   budget: number;
+  durationHours?: number;
   seekerName: string;
   seekerClerkId?: string;
 }

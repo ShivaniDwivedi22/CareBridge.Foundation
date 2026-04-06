@@ -19,6 +19,7 @@ const formSchema = z.object({
   location: z.string().min(3, "Location is required"),
   startDate: z.string().min(1, "Start date is required"),
   budget: z.coerce.number().min(10, "Minimum budget is $10/hr"),
+  durationHours: z.coerce.number().min(1, "Minimum 1 hour").optional(),
   seekerName: z.string().min(2, "Your name is required"),
 });
 
@@ -39,6 +40,7 @@ export default function PostRequest() {
       location: "",
       startDate: new Date().toISOString().split('T')[0],
       budget: 20,
+      durationHours: undefined,
       seekerName: "",
     },
   });
@@ -174,16 +176,41 @@ export default function PostRequest() {
                   )}
                 />
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
                     name="startDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>When do you need care to start?</FormLabel>
+                        <FormLabel>Start Date</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="durationHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (hours)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              placeholder="e.g. 4"
+                              min="1"
+                              step="0.5"
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">hrs</span>
+                          </div>
+                        </FormControl>
+                        <FormDescription>How many hours per session</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
