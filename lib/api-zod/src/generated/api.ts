@@ -209,6 +209,7 @@ export const CreateCareRequestBody = zod.object({
   startDate: zod.string(),
   endDate: zod.string().optional(),
   budget: zod.number(),
+  durationHours: zod.number().optional(),
   seekerName: zod.string(),
   seekerClerkId: zod.string().optional(),
 });
