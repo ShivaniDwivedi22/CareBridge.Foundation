@@ -1,6 +1,6 @@
 import { useListCaregivers, useListCategories } from "@workspace/api-client-react";
-import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { Link } from "wouter";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,19 +8,32 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, ShieldCheck, Search, SlidersHorizontal, ArrowRight } from "lucide-react";
+import { Star, MapPin, ShieldCheck, Search, SlidersHorizontal, ArrowRight, LocateFixed, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 export default function Caregivers() {
   const [searchParams] = useState(() => new URLSearchParams(window.location.search));
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get("category") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
-  
+
+  const geo = useGeolocation();
+
   const { data: categories } = useListCategories();
   const { data: caregivers, isLoading } = useListCaregivers({
-    category: categoryFilter || undefined,
+    category: categoryFilter && categoryFilter !== "all_cats" ? categoryFilter : undefined,
     location: locationFilter || undefined,
   });
+
+  const handleDetectLocation = async () => {
+    geo.detectLocation();
+  };
+
+  useEffect(() => {
+    if (geo.location) {
+      setLocationFilter(geo.location);
+    }
+  }, [geo.location]);
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
@@ -46,30 +59,57 @@ export default function Caregivers() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="w-full md:w-1/3 space-y-2">
           <label className="text-sm font-medium px-1">Location</label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="E.g. San Francisco, CA" 
-              className="pl-9"
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-            />
+          <div className="relative flex items-center gap-2">
+            <div className="relative flex-1">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="City, State"
+                className="pl-9"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 h-10 w-10"
+              onClick={handleDetectLocation}
+              disabled={geo.isDetecting}
+              title="Use my current location"
+            >
+              {geo.isDetecting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LocateFixed className="h-4 w-4" />
+              )}
+            </Button>
           </div>
+          {geo.error && (
+            <p className="text-xs text-destructive px-1">{geo.error}</p>
+          )}
         </div>
 
-        <div className="w-full md:w-auto">
+        <div className="w-full md:w-auto flex gap-2">
           <Button variant="outline" className="w-full gap-2" onClick={() => {
             setCategoryFilter("all_cats");
             setLocationFilter("");
           }}>
             <SlidersHorizontal className="h-4 w-4" />
-            Clear Filters
+            Clear
           </Button>
         </div>
       </div>
+
+      {locationFilter && (
+        <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="w-4 h-4 text-primary" />
+          Showing caregivers near <span className="font-medium text-foreground">{locationFilter}</span>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -83,7 +123,7 @@ export default function Caregivers() {
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold mb-2">No caregivers found</h3>
-          <p className="text-muted-foreground mb-6">Try adjusting your filters to see more results.</p>
+          <p className="text-muted-foreground mb-6">Try adjusting your filters or expanding your search area.</p>
           <Button variant="outline" onClick={() => {
             setCategoryFilter("all_cats");
             setLocationFilter("");
@@ -104,7 +144,7 @@ export default function Caregivers() {
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start mb-4">
                     <Avatar className="w-16 h-16 border-2 border-background shadow-sm">
-                      <AvatarImage src={caregiver.avatarUrl} alt={caregiver.name} className="object-cover" />
+                      <AvatarImage src={caregiver.avatarUrl ?? undefined} alt={caregiver.name} className="object-cover" />
                       <AvatarFallback className="text-lg bg-primary/10 text-primary">
                         {caregiver.name.charAt(0)}
                       </AvatarFallback>

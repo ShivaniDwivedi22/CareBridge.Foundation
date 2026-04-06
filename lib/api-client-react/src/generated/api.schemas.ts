@@ -34,6 +34,21 @@ export interface Caregiver {
   certifications?: string | null;
   languages?: string | null;
   services?: string | null;
+  phone?: string | null;
+  pastWorkReferences?: string | null;
+  backgroundCheckConsent: boolean;
+  policeVerification: boolean;
+  medicalFitnessDeclaration: boolean;
+  medicalNursingLicense?: string | null;
+  foodSafetyCertificate: boolean;
+  insuranceLicense?: string | null;
+  serviceRadius?: string | null;
+  onSiteRemote?: string | null;
+  availabilitySchedule?: string | null;
+  pricingUnit?: string | null;
+  termsAccepted: boolean;
+  codeOfConductAccepted: boolean;
+  liabilityWaiverAccepted: boolean;
   createdAt: string;
 }
 
@@ -47,6 +62,21 @@ export interface CreateCaregiverBody {
   certifications?: string;
   languages?: string;
   services?: string;
+  phone?: string;
+  pastWorkReferences?: string;
+  backgroundCheckConsent?: boolean;
+  policeVerification?: boolean;
+  medicalFitnessDeclaration?: boolean;
+  medicalNursingLicense?: string;
+  foodSafetyCertificate?: boolean;
+  insuranceLicense?: string;
+  serviceRadius?: string;
+  onSiteRemote?: string;
+  availabilitySchedule?: string;
+  pricingUnit?: string;
+  termsAccepted?: boolean;
+  codeOfConductAccepted?: boolean;
+  liabilityWaiverAccepted?: boolean;
 }
 
 export type CareRequestStatus =

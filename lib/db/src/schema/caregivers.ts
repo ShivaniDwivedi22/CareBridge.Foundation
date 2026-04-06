@@ -17,6 +17,22 @@ export const caregiversTable = pgTable("caregivers", {
   certifications: text("certifications"),
   languages: text("languages"),
   services: text("services"),
+  // Provider Registration Fields
+  phone: text("phone"),
+  pastWorkReferences: text("past_work_references"),
+  backgroundCheckConsent: boolean("background_check_consent").notNull().default(false),
+  policeVerification: boolean("police_verification").notNull().default(false),
+  medicalFitnessDeclaration: boolean("medical_fitness_declaration").notNull().default(false),
+  medicalNursingLicense: text("medical_nursing_license"),
+  foodSafetyCertificate: boolean("food_safety_certificate").notNull().default(false),
+  insuranceLicense: text("insurance_license"),
+  serviceRadius: text("service_radius"),
+  onSiteRemote: text("on_site_remote"),
+  availabilitySchedule: text("availability_schedule"),
+  pricingUnit: text("pricing_unit").notNull().default("hourly"),
+  termsAccepted: boolean("terms_accepted").notNull().default(false),
+  codeOfConductAccepted: boolean("code_of_conduct_accepted").notNull().default(false),
+  liabilityWaiverAccepted: boolean("liability_waiver_accepted").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

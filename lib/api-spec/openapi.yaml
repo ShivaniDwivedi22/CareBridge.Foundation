@@ -581,6 +581,44 @@ components:
         services:
           type: string
           nullable: true
+        phone:
+          type: string
+          nullable: true
+        pastWorkReferences:
+          type: string
+          nullable: true
+        backgroundCheckConsent:
+          type: boolean
+        policeVerification:
+          type: boolean
+        medicalFitnessDeclaration:
+          type: boolean
+        medicalNursingLicense:
+          type: string
+          nullable: true
+        foodSafetyCertificate:
+          type: boolean
+        insuranceLicense:
+          type: string
+          nullable: true
+        serviceRadius:
+          type: string
+          nullable: true
+        onSiteRemote:
+          type: string
+          nullable: true
+        availabilitySchedule:
+          type: string
+          nullable: true
+        pricingUnit:
+          type: string
+          nullable: true
+        termsAccepted:
+          type: boolean
+        codeOfConductAccepted:
+          type: boolean
+        liabilityWaiverAccepted:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -595,6 +633,13 @@ components:
         - reviewCount
         - yearsExperience
         - isVerified
+        - backgroundCheckConsent
+        - policeVerification
+        - medicalFitnessDeclaration
+        - foodSafetyCertificate
+        - termsAccepted
+        - codeOfConductAccepted
+        - liabilityWaiverAccepted
         - createdAt
 
     CreateCaregiverBody:
@@ -620,6 +665,36 @@ components:
           type: string
         services:
           type: string
+        phone:
+          type: string
+        pastWorkReferences:
+          type: string
+        backgroundCheckConsent:
+          type: boolean
+        policeVerification:
+          type: boolean
+        medicalFitnessDeclaration:
+          type: boolean
+        medicalNursingLicense:
+          type: string
+        foodSafetyCertificate:
+          type: boolean
+        insuranceLicense:
+          type: string
+        serviceRadius:
+          type: string
+        onSiteRemote:
+          type: string
+        availabilitySchedule:
+          type: string
+        pricingUnit:
+          type: string
+        termsAccepted:
+          type: boolean
+        codeOfConductAccepted:
+          type: boolean
+        liabilityWaiverAccepted:
+          type: boolean
       required:
         - name
         - bio

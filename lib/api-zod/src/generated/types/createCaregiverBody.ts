@@ -16,4 +16,19 @@ export interface CreateCaregiverBody {
   certifications?: string;
   languages?: string;
   services?: string;
+  phone?: string;
+  pastWorkReferences?: string;
+  backgroundCheckConsent?: boolean;
+  policeVerification?: boolean;
+  medicalFitnessDeclaration?: boolean;
+  medicalNursingLicense?: string;
+  foodSafetyCertificate?: boolean;
+  insuranceLicense?: string;
+  serviceRadius?: string;
+  onSiteRemote?: string;
+  availabilitySchedule?: string;
+  pricingUnit?: string;
+  termsAccepted?: boolean;
+  codeOfConductAccepted?: boolean;
+  liabilityWaiverAccepted?: boolean;
 }

@@ -62,7 +62,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: "Find Care", href: "/caregivers", icon: UserCircle },
     { name: "Care Requests", href: "/care-requests", icon: Briefcase },
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Messages", href: "/messages", icon: MessageCircle, authOnly: true },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, authOnly: true },
   ];
 
   return (
@@ -81,7 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <div className="flex items-center gap-6 text-sm font-medium">
-              {navigation.map((item) => (
+              {navigation.filter(item => !item.authOnly).map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -92,6 +93,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {item.name}
                 </Link>
               ))}
+              <Show when="signed-in">
+                {navigation.filter(item => item.authOnly).map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`transition-colors hover:text-primary ${
+                      location === item.href ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </Show>
             </div>
             <div className="flex items-center gap-3">
               <Show when="signed-out">

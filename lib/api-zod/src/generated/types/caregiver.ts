@@ -23,5 +23,20 @@ export interface Caregiver {
   certifications?: string | null;
   languages?: string | null;
   services?: string | null;
+  phone?: string | null;
+  pastWorkReferences?: string | null;
+  backgroundCheckConsent: boolean;
+  policeVerification: boolean;
+  medicalFitnessDeclaration: boolean;
+  medicalNursingLicense?: string | null;
+  foodSafetyCertificate: boolean;
+  insuranceLicense?: string | null;
+  serviceRadius?: string | null;
+  onSiteRemote?: string | null;
+  availabilitySchedule?: string | null;
+  pricingUnit?: string | null;
+  termsAccepted: boolean;
+  codeOfConductAccepted: boolean;
+  liabilityWaiverAccepted: boolean;
   createdAt: Date;
 }
