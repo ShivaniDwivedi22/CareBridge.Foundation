@@ -303,8 +303,14 @@ export default function CaregiverDetail() {
                         <Languages className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="font-medium mb-1">Languages Spoken</div>
-                        <div className="text-sm text-muted-foreground">{caregiver.languages}</div>
+                        <div className="font-medium mb-2">Languages Spoken</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {caregiver.languages.split(",").map(l => l.trim()).filter(Boolean).map((lang) => (
+                            <span key={lang} className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium">
+                              {lang}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

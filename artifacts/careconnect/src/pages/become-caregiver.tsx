@@ -370,12 +370,53 @@ export default function BecomeCaregiver() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                          <FormField control={form.control} name="languages" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Languages Spoken <ReqBadge level="O" /></FormLabel>
-                              <FormControl><Input placeholder="English, Spanish" {...field} /></FormControl>
-                            </FormItem>
-                          )} />
+                          {/* ── Indian Language Picker ─────────────────────── */}
+                          <div className="col-span-2">
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className="text-sm font-medium leading-none">Languages Spoken</span>
+                              <ReqBadge level="O" />
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-3">Select all languages you can communicate in with families.</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                              {[
+                                "Hindi", "English", "Punjabi", "Gujarati", "Marathi",
+                                "Tamil", "Telugu", "Kannada", "Malayalam", "Bengali",
+                                "Odia", "Urdu", "Sindhi", "Assamese", "Konkani",
+                              ].map((lang) => {
+                                const selected = (form.watch("languages") ?? "").split(",").map(s => s.trim()).filter(Boolean);
+                                const isSelected = selected.includes(lang);
+                                return (
+                                  <label
+                                    key={lang}
+                                    className={cn(
+                                      "flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer text-sm transition-colors select-none",
+                                      isSelected
+                                        ? "border-primary bg-primary/8 text-primary font-medium"
+                                        : "border-border/60 hover:border-primary/40 text-muted-foreground"
+                                    )}
+                                    onClick={() => {
+                                      const cur = (form.getValues("languages") ?? "").split(",").map(s => s.trim()).filter(Boolean);
+                                      const next = isSelected ? cur.filter(l => l !== lang) : [...cur, lang];
+                                      form.setValue("languages", next.join(", "), { shouldValidate: true });
+                                    }}
+                                  >
+                                    <span className={cn(
+                                      "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                      isSelected ? "bg-primary border-primary" : "border-border"
+                                    )}>
+                                      {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                                    </span>
+                                    {lang}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            {form.watch("languages") && (
+                              <p className="mt-2 text-xs text-primary font-medium">
+                                Selected: {form.watch("languages")}
+                              </p>
+                            )}
+                          </div>
                         </div>
 
                         <FormField control={form.control} name="bio" render={({ field }) => (

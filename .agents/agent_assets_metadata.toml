@@ -17,4 +17,16 @@ title = "Pediatric nurse portrait"
 id = "QrLMCVvVHIdQaiWBf6YCG"
 uri = "file://artifacts/careconnect/src/assets/images/hero-home.png"
 type = "image"
-title = "Hero candid caregiving moment"
+title = "indian-caregiver-elderly-hero"
+
+[[generated]]
+id = "e5rj_UZXeYrg53Va7VO7d"
+uri = "file://artifacts/careconnect/src/assets/images/caregiver-newborn.png"
+type = "image"
+title = "indian-caregiver-newborn"
+
+[[generated]]
+id = "gnIPYwyaUmzKTba9tOVfp"
+uri = "file://artifacts/careconnect/src/assets/images/caregiver-childcare.png"
+type = "image"
+title = "indian-caregiver-childcare"

@@ -38,9 +38,9 @@ export default function Caregivers() {
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="mb-10">
-        <h1 className="font-serif text-4xl font-bold mb-4">Find a Caregiver</h1>
+        <h1 className="font-serif text-4xl font-bold mb-4">Find Your Apna Caregiver</h1>
         <p className="text-lg text-muted-foreground max-w-2xl">
-          Browse our community of compassionate, vetted professionals ready to help your family.
+          Browse our community of trusted desi caregivers who speak your language and understand your family's values.
         </p>
       </div>
 
@@ -181,6 +181,20 @@ export default function Caregivers() {
                       </Badge>
                     )}
                   </div>
+                  {caregiver.languages && (
+                    <div className="flex flex-wrap gap-1">
+                      {caregiver.languages.split(",").map(l => l.trim()).filter(Boolean).slice(0, 3).map((lang) => (
+                        <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs">
+                          {lang}
+                        </span>
+                      ))}
+                      {caregiver.languages.split(",").filter(Boolean).length > 3 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
+                          +{caregiver.languages.split(",").filter(Boolean).length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                     {caregiver.bio}
                   </p>

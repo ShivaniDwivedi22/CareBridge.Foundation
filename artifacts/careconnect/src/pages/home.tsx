@@ -37,14 +37,14 @@ export default function Home() {
               className="max-w-2xl"
             >
               <Badge variant="secondary" className="mb-6 rounded-full px-4 py-1.5 text-sm bg-primary/10 text-primary hover:bg-primary/20 font-medium">
-                Your trusted care community
+                Apna care community
               </Badge>
               <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] tracking-tight mb-6 text-foreground">
                 Compassionate care,<br/>
                 <span className="text-primary italic">exactly when you need it.</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-                Connect with vetted, experienced professionals for elderly care, newborn support, and special needs. It's like asking a knowledgeable friend for a recommendation.
+                Connect with trusted, experienced desis for elderly care, newborn support, and special needs — someone who understands your language, culture, and traditions.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="rounded-full text-base h-14 px-8 shadow-md hover-elevate" asChild>
@@ -64,7 +64,7 @@ export default function Home() {
               <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/3] max-w-[600px] border border-border/50">
                 <img 
                   src={heroImage} 
-                  alt="Caregiver helping elderly woman" 
+                  alt="Indian caregiver helping elderly woman at home" 
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
@@ -79,7 +79,7 @@ export default function Home() {
                     ))}
                   </div>
                   <div className="text-sm font-medium">
-                    <span className="text-primary font-bold">500+</span> families helped
+                    <span className="text-primary font-bold">500+</span> Indian families served
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-yellow-500">
@@ -96,7 +96,7 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="font-serif text-3xl font-bold mb-4">What kind of care do you need?</h2>
-            <p className="text-muted-foreground">Browse specialized professionals across our most requested categories.</p>
+            <p className="text-muted-foreground">Browse vetted desi professionals who speak your language and understand your family's needs.</p>
           </div>
           
           {isLoadingCategories ? (
@@ -144,7 +144,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div className="max-w-2xl">
               <h2 className="font-serif text-3xl font-bold mb-4">Highly rated caregivers</h2>
-              <p className="text-muted-foreground">Meet some of our most trusted and experienced professionals.</p>
+              <p className="text-muted-foreground">Meet some of our most trusted and experienced Indian caregiving professionals.</p>
             </div>
             <Button variant="ghost" className="gap-2 shrink-0 md:self-end" asChild>
               <Link href="/caregivers">View all <ArrowRight className="w-4 h-4" /></Link>
@@ -229,7 +229,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div className="max-w-2xl">
               <h2 className="font-serif text-3xl font-bold mb-4">Recent care requests</h2>
-              <p className="text-muted-foreground">Families in your area are looking for care. Apply to help.</p>
+              <p className="text-muted-foreground">Indian families near you are looking for trusted care. Apply and make a difference.</p>
             </div>
             <Button variant="outline" className="gap-2 shrink-0 md:self-end rounded-full" asChild>
               <Link href="/care-requests">Browse all jobs <ArrowRight className="w-4 h-4" /></Link>

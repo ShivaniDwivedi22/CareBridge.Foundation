@@ -204,7 +204,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <span className="font-serif text-xl font-bold tracking-tight">CareConnect</span>
               </Link>
               <p className="text-muted-foreground leading-relaxed">
-                The trusted bridge between families who need compassionate care and vetted professionals who provide it. Like asking a knowledgeable friend for a trusted recommendation.
+                Your apna care community — connecting Indian families with trusted desi caregivers who share your language, culture, and values. Ghar jaisa care, aap ke liye.
               </p>
             </div>
             <div>
