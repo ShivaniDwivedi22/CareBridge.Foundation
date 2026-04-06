@@ -214,7 +214,7 @@ export default function BecomeCaregiver() {
     createCaregiver.mutate({ data }, {
       onSuccess: (result) => {
         toast({
-          title: "Welcome to CareConnect!",
+          title: "Welcome to Care Bridge!",
           description: "Your profile is under review and will be activated shortly.",
         });
         setLocation(`/caregivers/${result.id}`);
@@ -690,7 +690,7 @@ export default function BecomeCaregiver() {
                         </div>
 
                         <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300">
-                          Bank account details for payouts will be collected securely after your profile is approved. CareConnect uses encrypted banking connections.
+                          Bank account details for payouts will be collected securely after your profile is approved. Care Bridge uses encrypted banking connections.
                         </div>
                       </>
                     )}
@@ -715,7 +715,7 @@ export default function BecomeCaregiver() {
                                 Terms & Privacy Policy <span className="text-red-500">*</span>
                               </FormLabel>
                               <FormDescription>
-                                I have read and agree to CareConnect's Terms of Service and Privacy Policy.
+                                I have read and agree to Care Bridge's Terms of Service and Privacy Policy.
                               </FormDescription>
                               <FormMessage />
                             </div>
@@ -735,7 +735,7 @@ export default function BecomeCaregiver() {
                                 Code of Conduct <span className="text-red-500">*</span>
                               </FormLabel>
                               <FormDescription>
-                                I agree to uphold CareConnect's professional Code of Conduct and treat all clients with dignity and respect.
+                                I agree to uphold Care Bridge's professional Code of Conduct and treat all clients with dignity and respect.
                               </FormDescription>
                               <FormMessage />
                             </div>
@@ -754,7 +754,7 @@ export default function BecomeCaregiver() {
                                   <ReqBadge level={getReqLevel("liabilityWaiverAccepted", selectedSlugs)} />
                                 </FormLabel>
                                 <FormDescription>
-                                  I acknowledge the liability waiver and understand the limits of CareConnect's coverage.
+                                  I acknowledge the liability waiver and understand the limits of Care Bridge's coverage.
                                 </FormDescription>
                               </div>
                             </FormItem>

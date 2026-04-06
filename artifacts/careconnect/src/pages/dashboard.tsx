@@ -42,7 +42,7 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       <div className="mb-10">
         <h1 className="font-serif text-4xl font-bold mb-2">Platform Dashboard</h1>
-        <p className="text-muted-foreground">Overview of CareConnect marketplace activity.</p>
+        <p className="text-muted-foreground">Overview of Care Bridge marketplace activity.</p>
       </div>
 
       {/* Stats Grid */}

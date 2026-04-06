@@ -11,7 +11,7 @@ interface GeolocationState {
 async function reverseGeocode(lat: number, lon: number): Promise<string> {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`;
   const res = await fetch(url, {
-    headers: { "Accept-Language": "en", "User-Agent": "CareConnect/1.0" },
+    headers: { "Accept-Language": "en", "User-Agent": "CareBridge/1.0" },
   });
   if (!res.ok) throw new Error("Geocoding failed");
   const data = await res.json();

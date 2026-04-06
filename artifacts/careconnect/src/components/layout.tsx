@@ -76,7 +76,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <HeartHandshake className="h-6 w-6 text-primary" />
             </div>
             <span className="font-serif text-xl font-bold tracking-tight text-foreground">
-              CareConnect
+              Care Bridge
             </span>
           </Link>
 
@@ -201,7 +201,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="col-span-1 md:col-span-2 max-w-sm">
               <Link href="/" className="flex items-center gap-2 mb-4">
                 <HeartHandshake className="h-6 w-6 text-primary" />
-                <span className="font-serif text-xl font-bold tracking-tight">CareConnect</span>
+                <span className="font-serif text-xl font-bold tracking-tight">Care Bridge</span>
               </Link>
               <p className="text-muted-foreground leading-relaxed">
                 Your apna care community — connecting Indian families with trusted desi caregivers who share your language, culture, and values. Ghar jaisa care, aap ke liye.
@@ -225,7 +225,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} CareConnect. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Care Bridge. All rights reserved.</p>
           </div>
         </div>
       </footer>

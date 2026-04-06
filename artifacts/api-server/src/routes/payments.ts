@@ -69,7 +69,7 @@ router.post("/payments/create-intent", async (req, res): Promise<void> => {
       platformFeeCents: String(platformFeeCents),
       providerPayoutCents: String(providerPayoutCents),
     },
-    description: `CareConnect booking #${bookingId}`,
+    description: `Care Bridge booking #${bookingId}`,
   });
 
   // Upsert payment record
