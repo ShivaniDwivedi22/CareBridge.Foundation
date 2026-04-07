@@ -6,16 +6,31 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartPulse, Baby, UserCog, Activity, Brain } from "lucide-react";
+import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles } from "lucide-react";
 import heroImage from "@/assets/images/hero-home.png";
 
-const IconMap: Record<string, any> = {
-  "baby": Baby,
-  "heart-pulse": HeartPulse,
-  "user-cog": UserCog,
-  "activity": Activity,
-  "brain": Brain,
-  "default": HeartPulse
+import imgPetCare from "@/assets/images/category-pet-care.png";
+import imgNewbornCare from "@/assets/images/category-newborn-care.png";
+import imgPostpartumCare from "@/assets/images/category-postpartum-care.png";
+import imgElderlyCare from "@/assets/images/category-elderly-care.png";
+import imgSpecialNeedsCare from "@/assets/images/category-special-needs-care.png";
+import imgChildCare from "@/assets/images/category-child-care.png";
+import imgHouseHelp from "@/assets/images/category-house-help.png";
+import imgKitchenFoodHelp from "@/assets/images/category-kitchen-food-help.png";
+import imgEventSupport from "@/assets/images/category-event-support.png";
+import imgTravelMedicalCare from "@/assets/images/category-travel-medical-care.png";
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  "pet-care": imgPetCare,
+  "newborn-care": imgNewbornCare,
+  "postpartum-care": imgPostpartumCare,
+  "elderly-care": imgElderlyCare,
+  "special-needs-care": imgSpecialNeedsCare,
+  "child-care": imgChildCare,
+  "house-help": imgHouseHelp,
+  "kitchen-food-help": imgKitchenFoodHelp,
+  "event-support": imgEventSupport,
+  "travel-medical-care": imgTravelMedicalCare,
 };
 
 export default function Home() {
@@ -100,41 +115,89 @@ export default function Home() {
           </div>
           
           {isLoadingCategories ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-40 rounded-xl" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-44 rounded-2xl" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
               {categories?.map((category, index) => {
-                const Icon = IconMap[category.icon] || IconMap.default;
+                const img = CATEGORY_IMAGES[category.slug];
                 return (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.07 }}
                     key={category.id}
                   >
                     <Link href={`/caregivers?category=${category.slug}`}>
-                      <Card className="h-full cursor-pointer transition-all hover:border-primary/50 hover:shadow-md group">
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
-                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                            <Icon className="w-6 h-6 text-primary group-hover:text-primary-foreground" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{category.name}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">{category.caregiverCount} professionals</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <div className="group relative h-44 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-border/30">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={category.name}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-primary/10" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <h3 className="text-white font-semibold text-sm leading-tight">{category.name}</h3>
+                          <p className="text-white/70 text-xs mt-0.5">{category.caregiverCount} professionals</p>
+                        </div>
+                      </div>
                     </Link>
                   </motion.div>
                 );
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Our Story + Mission */}
+      <section className="py-20 bg-primary/5 border-y border-primary/10">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="bg-card rounded-2xl p-8 shadow-sm border border-border/40"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="font-serif text-2xl font-bold">Our Story</h2>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                From late-night chai cravings to festive marigold rushes, we know life doesn't slow down when you're far from home. Care Bridge was born to bring Indian families in the U.S. and Canada a little closer to the comfort of their roots — while keeping everyday care simple and stress-free.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="bg-card rounded-2xl p-8 shadow-sm border border-border/40"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <HeartHandshake className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="font-serif text-2xl font-bold">Our Mission</h2>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                To connect you with trusted helpers who speak your language, honor your traditions, and treat your loved ones like their own — because real care should feel like family, not a chore.
+              </p>
+            </motion.div>
+          </div>
         </div>
       </section>
 

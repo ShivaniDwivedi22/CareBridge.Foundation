@@ -30,3 +30,63 @@ id = "gnIPYwyaUmzKTba9tOVfp"
 uri = "file://artifacts/careconnect/src/assets/images/caregiver-childcare.png"
 type = "image"
 title = "indian-caregiver-childcare"
+
+[[generated]]
+id = "XlgdahBB_V6LHAIwgVZd3"
+uri = "file://artifacts/careconnect/src/assets/images/category-pet-care.png"
+type = "image"
+title = "pet care Indian"
+
+[[generated]]
+id = "kgfD2QNIAljzmo_HnQwq3"
+uri = "file://artifacts/careconnect/src/assets/images/category-newborn-care.png"
+type = "image"
+title = "newborn care Indian"
+
+[[generated]]
+id = "SqdJkobLqw_lsr_fwYOTx"
+uri = "file://artifacts/careconnect/src/assets/images/category-postpartum-care.png"
+type = "image"
+title = "postpartum care Indian"
+
+[[generated]]
+id = "T_32h8KU0eprO-i6yYVb8"
+uri = "file://artifacts/careconnect/src/assets/images/category-elderly-care.png"
+type = "image"
+title = "elderly care Indian"
+
+[[generated]]
+id = "sq4lOPgBfzQyUZYHu5lXQ"
+uri = "file://artifacts/careconnect/src/assets/images/category-special-needs-care.png"
+type = "image"
+title = "special needs care Indian"
+
+[[generated]]
+id = "xwY5P0X6ZmTNgILhx9gAZ"
+uri = "file://artifacts/careconnect/src/assets/images/category-child-care.png"
+type = "image"
+title = "child care Indian"
+
+[[generated]]
+id = "vrUazQAzXsvAAA_cDdSM5"
+uri = "file://artifacts/careconnect/src/assets/images/category-house-help.png"
+type = "image"
+title = "house help Indian"
+
+[[generated]]
+id = "mICwAHo-SWrYOqkIQurYX"
+uri = "file://artifacts/careconnect/src/assets/images/category-kitchen-food-help.png"
+type = "image"
+title = "kitchen food help Indian"
+
+[[generated]]
+id = "vUc6r7O7tVhIFT_ZpxhJE"
+uri = "file://artifacts/careconnect/src/assets/images/category-event-support.png"
+type = "image"
+title = "event support Indian"
+
+[[generated]]
+id = "2D58D_w_BUH1_9BVBmy5c"
+uri = "file://artifacts/careconnect/src/assets/images/category-travel-medical-care.png"
+type = "image"
+title = "travel medical care Indian"
