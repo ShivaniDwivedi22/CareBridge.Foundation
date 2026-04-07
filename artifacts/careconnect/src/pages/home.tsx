@@ -133,20 +133,22 @@ export default function Home() {
                     key={category.id}
                   >
                     <Link href={`/caregivers?category=${category.slug}`}>
-                      <div className="group relative h-44 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-border/30">
-                        {img ? (
-                          <img
-                            src={img}
-                            alt={category.name}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 bg-primary/10" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3">
-                          <h3 className="text-white font-semibold text-sm leading-tight">{category.name}</h3>
-                          <p className="text-white/70 text-xs mt-0.5">{category.caregiverCount} professionals</p>
+                      <div className="group flex flex-col rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-border/40 bg-card">
+                        <div className="relative h-28 overflow-hidden">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt={category.name}
+                              className="w-full h-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-primary/10" />
+                          )}
+                          <div className="absolute inset-0 bg-primary/10 group-hover:bg-primary/5 transition-colors" />
+                        </div>
+                        <div className="px-3 py-3 bg-card border-t border-border/30">
+                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors">{category.name}</h3>
+                          <p className="text-muted-foreground text-xs mt-0.5">{category.caregiverCount} professionals</p>
                         </div>
                       </div>
                     </Link>
