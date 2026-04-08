@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles } from "lucide-react";
+import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles, Search, HandHeart, Zap } from "lucide-react";
 import heroImage from "@/assets/images/hero-home.png";
 
 import imgPetCare from "@/assets/images/category-pet-care.png";
@@ -61,13 +61,43 @@ export default function Home() {
               <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
                 Connect with trusted, experienced desis for elderly care, newborn support, and special needs — someone who understands your language, culture, and traditions.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="rounded-full text-base h-14 px-8 shadow-md hover-elevate" asChild>
-                  <Link href="/caregivers">Find a Caregiver</Link>
-                </Button>
-                <Button size="lg" variant="outline" className="rounded-full text-base h-14 px-8" asChild>
-                  <Link href="/post-request">Post a Request</Link>
-                </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                <Link href="/caregivers">
+                  <div className="group flex items-center gap-3 bg-primary text-primary-foreground rounded-2xl px-4 py-3.5 shadow-md hover:shadow-lg hover:brightness-105 transition-all cursor-pointer">
+                    <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                      <Search className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm leading-tight">Seek Care</div>
+                      <div className="text-xs text-primary-foreground/75 leading-tight mt-0.5">Find vetted caregivers</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 ml-auto shrink-0 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </Link>
+                <Link href="/become-caregiver">
+                  <div className="group flex items-center gap-3 bg-card border border-border text-foreground rounded-2xl px-4 py-3.5 shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-pointer">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <HandHeart className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm leading-tight">Provide Care</div>
+                      <div className="text-xs text-muted-foreground leading-tight mt-0.5">Join as a caregiver</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 ml-auto shrink-0 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                </Link>
+                <Link href="/post-request">
+                  <div className="group flex items-center gap-3 bg-orange-50 border border-orange-200 text-orange-900 rounded-2xl px-4 py-3.5 shadow-sm hover:shadow-md hover:bg-orange-100 transition-all cursor-pointer">
+                    <div className="w-9 h-9 rounded-xl bg-orange-200/60 flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm leading-tight">Urgent Help</div>
+                      <div className="text-xs text-orange-700/80 leading-tight mt-0.5">Post a request now</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 ml-auto shrink-0 text-orange-500 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </Link>
               </div>
             </motion.div>
             <motion.div 
