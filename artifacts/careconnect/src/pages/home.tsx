@@ -101,50 +101,76 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-12"
           >
-            <Link href="/caregivers">
-              <div className="group flex flex-col gap-4 bg-primary text-primary-foreground rounded-2xl px-7 py-6 shadow-lg hover:shadow-xl hover:brightness-105 transition-all cursor-pointer h-full">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Search className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="font-bold text-xl mb-1">Seek Care</div>
-                  <div className="text-sm text-primary-foreground/80 leading-relaxed">Browse trusted, vetted Indian American caregivers near you</div>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm font-semibold mt-auto pt-2 border-t border-white/20">
-                  Browse caregivers <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </Link>
-            <Link href="/become-caregiver">
-              <div className="group flex flex-col gap-4 bg-card border-2 border-border text-foreground rounded-2xl px-7 py-6 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer h-full">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <HandHeart className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="font-bold text-xl mb-1">Provide Care</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">Join our community and offer your skills to families who need you</div>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-primary mt-auto pt-2 border-t border-border">
-                  Become a caregiver <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {/* Primary — Seek Care, spans 2 cols */}
+            <Link href="/caregivers" className="lg:col-span-2">
+              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-[#c0583a] text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer h-full min-h-[200px]">
+                {/* decorative circles */}
+                <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10" />
+                <div className="absolute -bottom-14 -right-4 w-64 h-64 rounded-full bg-white/5" />
+                <div className="relative z-10 flex flex-col justify-between h-full p-8 gap-6">
+                  <div className="flex items-start justify-between">
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                      <Search className="w-7 h-7" />
+                    </div>
+                    <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1 backdrop-blur-sm">Most popular</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-3xl mb-2">Seek Care</h3>
+                    <p className="text-primary-foreground/80 text-base leading-relaxed max-w-md">
+                      Browse trusted, vetted Indian American caregivers near you — someone who speaks your language and honors your traditions.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-base font-semibold group-hover:gap-3 transition-all">
+                    Browse caregivers <ArrowRight className="w-5 h-5" />
+                  </div>
                 </div>
               </div>
             </Link>
-            <Link href="/post-request">
-              <div className="group flex flex-col gap-4 bg-orange-50 border-2 border-orange-200 text-orange-900 rounded-2xl px-7 py-6 shadow-sm hover:shadow-lg hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer h-full">
-                <div className="w-12 h-12 rounded-2xl bg-orange-200/70 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-orange-600" />
+
+            {/* Secondary stack — Provide Care + Urgent Help */}
+            <div className="flex flex-col gap-4">
+              <Link href="/become-caregiver" className="flex-1">
+                <div className="group relative overflow-hidden rounded-3xl bg-card border-2 border-border text-foreground shadow-sm hover:shadow-lg hover:border-primary/40 transition-all duration-300 cursor-pointer h-full min-h-[90px]">
+                  <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/5" />
+                  <div className="relative z-10 flex flex-col justify-between h-full p-6 gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <HandHeart className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-xl">Provide Care</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">Join and offer your skills to families</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-primary group-hover:gap-3 transition-all">
+                      Become a caregiver <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-bold text-xl mb-1">Urgent Help</div>
-                  <div className="text-sm text-orange-800/80 leading-relaxed">Need care today? Post a request and get matched quickly</div>
+              </Link>
+
+              <Link href="/post-request" className="flex-1">
+                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 text-orange-900 shadow-sm hover:shadow-lg hover:border-orange-300 transition-all duration-300 cursor-pointer h-full min-h-[90px]">
+                  <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-orange-200/30" />
+                  <div className="relative z-10 flex flex-col justify-between h-full p-6 gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-orange-200/70 flex items-center justify-center shrink-0">
+                        <Zap className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-xl">Urgent Help</h3>
+                        <p className="text-sm text-orange-700/80 mt-0.5">Need care today? Get matched fast</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-orange-600 group-hover:gap-3 transition-all">
+                      Post a request <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-orange-600 mt-auto pt-2 border-t border-orange-200">
-                  Post a request <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
