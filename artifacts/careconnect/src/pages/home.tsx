@@ -96,83 +96,93 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* Action Cards — full width below hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-12"
-          >
-            {/* Primary — Seek Care, spans 2 cols */}
-            <Link href="/caregivers" className="lg:col-span-2">
-              <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-[#c0583a] text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer h-full min-h-[200px]">
-                {/* decorative circles */}
-                <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10" />
-                <div className="absolute -bottom-14 -right-4 w-64 h-64 rounded-full bg-white/5" />
-                <div className="relative z-10 flex flex-col justify-between h-full p-8 gap-6">
-                  <div className="flex items-start justify-between">
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                      <Search className="w-7 h-7" />
-                    </div>
-                    <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1 backdrop-blur-sm">Most popular</span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-3xl mb-2">Seek Care</h3>
-                    <p className="text-primary-foreground/80 text-base leading-relaxed max-w-md">
-                      Browse trusted, vetted Indian American caregivers near you — someone who speaks your language and honors your traditions.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 text-base font-semibold group-hover:gap-3 transition-all">
-                    Browse caregivers <ArrowRight className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Secondary stack — Provide Care + Urgent Help */}
-            <div className="flex flex-col gap-4">
-              <Link href="/become-caregiver" className="flex-1">
-                <div className="group relative overflow-hidden rounded-3xl bg-card border-2 border-border text-foreground shadow-sm hover:shadow-lg hover:border-primary/40 transition-all duration-300 cursor-pointer h-full min-h-[90px]">
-                  <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/5" />
-                  <div className="relative z-10 flex flex-col justify-between h-full p-6 gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <HandHeart className="w-6 h-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-xl">Provide Care</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">Join and offer your skills to families</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-primary group-hover:gap-3 transition-all">
-                      Become a caregiver <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-
-              <Link href="/post-request" className="flex-1">
-                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 text-orange-900 shadow-sm hover:shadow-lg hover:border-orange-300 transition-all duration-300 cursor-pointer h-full min-h-[90px]">
-                  <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-orange-200/30" />
-                  <div className="relative z-10 flex flex-col justify-between h-full p-6 gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-orange-200/70 flex items-center justify-center shrink-0">
-                        <Zap className="w-6 h-6 text-orange-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-xl">Urgent Help</h3>
-                        <p className="text-sm text-orange-700/80 mt-0.5">Need care today? Get matched fast</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-orange-600 group-hover:gap-3 transition-all">
-                      Post a request <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          </motion.div>
+          {/* spacer so cards overlap hero bottom edge */}
+          <div className="h-8" />
         </div>
+      </section>
+
+      {/* Action Cards — full-bleed glass section */}
+      <section className="relative py-20 overflow-hidden">
+        {/* blurred background image */}
+        <img
+          src={heroImage}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40"
+        />
+        {/* warm gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/60 via-primary/40 to-amber-700/50" />
+
+        <div className="relative z-10 container mx-auto px-4 md:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10"
+          >
+            <p className="text-white/70 text-sm font-medium uppercase tracking-widest mb-2">How can we help?</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-white">Choose your path</h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            {[
+              {
+                href: "/caregivers",
+                icon: <Search className="w-7 h-7 text-white" />,
+                label: "Seek Care",
+                desc: "Find trusted, vetted Indian American caregivers who speak your language and honor your traditions.",
+                cta: "Browse caregivers",
+                delay: 0.1,
+              },
+              {
+                href: "/become-caregiver",
+                icon: <HandHeart className="w-7 h-7 text-white" />,
+                label: "Provide Care",
+                desc: "Join our community of compassionate caregivers and connect with families who truly need you.",
+                cta: "Become a caregiver",
+                delay: 0.2,
+              },
+              {
+                href: "/post-request",
+                icon: <Zap className="w-7 h-7 text-white" />,
+                label: "Urgent Help",
+                desc: "Need care today or this week? Post a request and get matched with available caregivers fast.",
+                cta: "Post a request",
+                delay: 0.3,
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: item.delay }}
+              >
+                <Link href={item.href}>
+                  <div className="group flex flex-col gap-5 rounded-3xl p-7 h-full cursor-pointer
+                    bg-white/10 backdrop-blur-md border border-white/25
+                    hover:bg-white/20 hover:border-white/40 hover:shadow-2xl
+                    transition-all duration-300">
+                    {/* icon ring */}
+                    <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 group-hover:bg-white/25 transition-colors">
+                      {item.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-2xl text-white mb-2">{item.label}</h3>
+                      <p className="text-white/75 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white/90 pt-4 border-t border-white/20 group-hover:gap-3 transition-all">
+                      {item.cta} <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* Categories */}
