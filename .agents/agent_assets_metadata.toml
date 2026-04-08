@@ -90,3 +90,21 @@ id = "2D58D_w_BUH1_9BVBmy5c"
 uri = "file://artifacts/careconnect/src/assets/images/category-travel-medical-care.png"
 type = "image"
 title = "travel medical US neighborhood"
+
+[[generated]]
+id = "kP-zsrioQRJkA8NxtRNGF"
+uri = "file://artifacts/careconnect/src/assets/images/card-seek-care.png"
+type = "image"
+title = "seek care compassionate hands"
+
+[[generated]]
+id = "fQOYIYwp17uTlDtWSpeC6"
+uri = "file://artifacts/careconnect/src/assets/images/card-provide-care.png"
+type = "image"
+title = "provide care caregiver helping elderly"
+
+[[generated]]
+id = "n9sctBcK0Ry-V-alHUC1z"
+uri = "file://artifacts/careconnect/src/assets/images/card-urgent-help.png"
+type = "image"
+title = "urgent help relief reassurance"

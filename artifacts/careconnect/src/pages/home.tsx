@@ -8,6 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles, Search, HandHeart, Zap } from "lucide-react";
 import heroImage from "@/assets/images/hero-home.png";
+import cardSeekCare from "@/assets/images/card-seek-care.png";
+import cardProvideCare from "@/assets/images/card-provide-care.png";
+import cardUrgentHelp from "@/assets/images/card-urgent-help.png";
 
 import imgPetCare from "@/assets/images/category-pet-care.png";
 import imgNewbornCare from "@/assets/images/category-newborn-care.png";
@@ -129,26 +132,29 @@ export default function Home() {
             {[
               {
                 href: "/caregivers",
-                icon: <Search className="w-7 h-7 text-white" />,
+                icon: <Search className="w-6 h-6 text-white" />,
                 label: "Seek Care",
                 desc: "Find trusted, vetted Indian American caregivers who speak your language and honor your traditions.",
                 cta: "Browse caregivers",
+                image: cardSeekCare,
                 delay: 0.1,
               },
               {
                 href: "/become-caregiver",
-                icon: <HandHeart className="w-7 h-7 text-white" />,
+                icon: <HandHeart className="w-6 h-6 text-white" />,
                 label: "Provide Care",
                 desc: "Join our community of compassionate caregivers and connect with families who truly need you.",
                 cta: "Become a caregiver",
+                image: cardProvideCare,
                 delay: 0.2,
               },
               {
                 href: "/post-request",
-                icon: <Zap className="w-7 h-7 text-white" />,
+                icon: <Zap className="w-6 h-6 text-white" />,
                 label: "Urgent Help",
                 desc: "Need care today or this week? Post a request and get matched with available caregivers fast.",
                 cta: "Post a request",
+                image: cardUrgentHelp,
                 delay: 0.3,
               },
             ].map((item) => (
@@ -160,20 +166,33 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: item.delay }}
               >
                 <Link href={item.href}>
-                  <div className="group flex flex-col gap-5 rounded-3xl p-7 h-full cursor-pointer
+                  <div className="group flex flex-col rounded-3xl overflow-hidden h-full cursor-pointer
                     bg-white/10 backdrop-blur-md border border-white/25
-                    hover:bg-white/20 hover:border-white/40 hover:shadow-2xl
+                    hover:bg-white/18 hover:border-white/40 hover:shadow-2xl
                     transition-all duration-300">
-                    {/* icon ring */}
-                    <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 group-hover:bg-white/25 transition-colors">
-                      {item.icon}
+
+                    {/* image strip — soft, not dominant */}
+                    <div className="relative h-36 overflow-hidden shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.label}
+                        className="w-full h-full object-cover opacity-70 group-hover:opacity-80 group-hover:scale-105 transition-all duration-500"
+                      />
+                      {/* gradient over image so text area below reads cleanly */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30" />
+                      {/* icon badge over image bottom-left */}
+                      <div className="absolute bottom-3 left-4 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
+                        {item.icon}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-2xl text-white mb-2">{item.label}</h3>
-                      <p className="text-white/75 text-sm leading-relaxed">{item.desc}</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-white/90 pt-4 border-t border-white/20 group-hover:gap-3 transition-all">
-                      {item.cta} <ArrowRight className="w-4 h-4" />
+
+                    {/* text content */}
+                    <div className="flex flex-col gap-3 p-6 flex-1">
+                      <h3 className="font-bold text-xl text-white">{item.label}</h3>
+                      <p className="text-white/75 text-sm leading-relaxed flex-1">{item.desc}</p>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-white/90 pt-3 border-t border-white/20 group-hover:gap-3 transition-all">
+                        {item.cta} <ArrowRight className="w-4 h-4" />
+                      </div>
                     </div>
                   </div>
                 </Link>
