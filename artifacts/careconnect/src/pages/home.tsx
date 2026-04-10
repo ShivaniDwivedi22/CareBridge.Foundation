@@ -208,8 +208,8 @@ export default function Home() {
       <section className="py-16 bg-muted/30 border-y border-border/30">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Why families trust Care Bridge</p>
-            <h2 className="font-serif text-2xl font-bold">Apka parivaar, hamari zimmedaari</h2>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Not just caregivers. Apne log.</p>
+            <h2 className="font-serif text-2xl font-bold">Because family deserves family</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center group">
