@@ -67,7 +67,7 @@ function CheckoutForm({
         });
         if (!resp.ok) throw new Error(await resp.text());
 
-        toast({ title: "Payment successful", description: "Your booking is now confirmed." });
+        toast({ title: "Payment confirmed!", description: "Your contact details are now unlocked." });
         onSuccess();
       } catch (err: any) {
         toast({ title: "Confirmation error", description: err.message, variant: "destructive" });
@@ -116,7 +116,6 @@ export default function CheckoutPage() {
   const [paymentId, setPaymentId] = useState<number | null>(null);
   const [piId, setPiId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paid, setPaid] = useState(false);
 
   useEffect(() => {
     if (!bookingId || !amountCents) {
@@ -144,24 +143,6 @@ export default function CheckoutPage() {
         setLoading(false);
       });
   }, [bookingId, amountCents]);
-
-  if (paid) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-10 h-10 text-green-600" />
-        </div>
-        <h1 className="text-3xl font-serif font-bold mb-3">Payment Confirmed!</h1>
-        <p className="text-muted-foreground mb-8">
-          Your booking with {caregiverName} has been confirmed. You'll receive a confirmation shortly.
-        </p>
-        <div className="flex gap-3 justify-center">
-          <Button variant="outline" onClick={() => setLocation("/dashboard")}>View Dashboard</Button>
-          <Button className="rounded-full" onClick={() => setLocation("/caregivers")}>Find More Care</Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container max-w-2xl mx-auto px-4 py-12 md:py-16">
@@ -192,7 +173,7 @@ export default function CheckoutPage() {
                     paymentId={paymentId!}
                     stripePaymentIntentId={piId!}
                     bookingId={bookingId}
-                    onSuccess={() => setPaid(true)}
+                    onSuccess={() => setLocation(`/payments/success?bookingId=${bookingId}&caregiver=${encodeURIComponent(caregiverName)}`)}
                   />
                 </Elements>
               ) : (

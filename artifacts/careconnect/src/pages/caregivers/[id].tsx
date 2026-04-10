@@ -207,13 +207,29 @@ export default function CaregiverDetail() {
 
                 <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
                   <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  <span>Contact details (phone &amp; direct info) are only revealed after your booking is accepted and payment is completed.</span>
+                  <span>Contact details revealed only after payment — your family's safety first.</span>
                 </div>
               </div>
 
               <p className="text-xs text-muted-foreground mt-4 text-center">
                 Usually responds within 24 hours
               </p>
+
+              {/* Trust signals */}
+              <div className="mt-5 pt-5 border-t border-border/40 space-y-2.5">
+                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
+                  <span>Background verified by Care Bridge</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                  <Award className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>Credentials reviewed &amp; approved</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                  <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>15% platform fee · Cancellation protected</span>
+                </div>
+              </div>
             </div>
           </Card>
         </div>

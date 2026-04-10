@@ -1,4 +1,5 @@
 import { useCreateCaregiver, useListCategories } from "@workspace/api-client-react";
+import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -157,6 +158,7 @@ export default function BecomeCaregiver() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
+  const { user } = useUser();
   const { data: categories } = useListCategories();
   const createCaregiver = useCreateCaregiver();
   const geo = useGeolocation();
@@ -211,7 +213,8 @@ export default function BecomeCaregiver() {
   const handleBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   function onSubmit(data: FormValues) {
-    createCaregiver.mutate({ data }, {
+    const payload = { ...data, clerkId: user?.id };
+    createCaregiver.mutate({ data: payload as any }, {
       onSuccess: (result) => {
         toast({
           title: "Welcome to Care Bridge!",

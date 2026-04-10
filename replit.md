@@ -24,19 +24,23 @@ CareConnect — a care-giving marketplace web app connecting caregivers to care 
 
 ## Key Features
 
+- **No Contact Before Payment** marketplace model enforced end-to-end
 - Browse caregivers by category (Pet Care, Newborn, Postpartum, Elderly, Special Needs, Child Care, House Help, Kitchen & Food Help, Event Support, Travel & Medical Care)
-- Caregiver profiles with ratings, reviews, hourly rate, verification badge
+- Caregiver profiles with ratings, reviews, hourly rate, verification badge, and trust signals
 - Post care requests as a care seeker
-- Register as a caregiver (7-step form with AvailabilityPicker)
-- Bookings management dashboard with Pay/Cancel actions
-- Dashboard overview with stats and category breakdown
+- Register as a caregiver (7-step form with AvailabilityPicker, saves clerkId for provider mode)
+- **Dashboard with Seeker/Provider tabs** — "Seeking Care" mode filters own bookings; "Providing Care" mode fetches via API using caregiver clerkId
+- Mini booking journey indicator (6-step progress bar) on each booking row
+- **Review CTA** for completed bookings
+- **Post-payment success page** at `/payments/success` — shows "Shukriya!" celebration, phone contact reveal, 6-step journey
+- Checkout redirects to `/payments/success` after confirmed payment
 - In-platform messaging (conversations + threads)
 - Admin panel (caregiver approval, review moderation, refunds & cancellations tab)
 - Payments (Stripe): create PaymentIntent, confirm payment, receipts, 15% platform commission
 - Cancellation & Refunds: tiered policy (48h+ = 100%, 24–48h = 50%, <24h = 0%), admin override
-- Provider Earnings dashboard
 - Geo-location search (Nominatim)
 - Clerk authentication (custom UI, proxy path `/__clerk`)
+- Branded 404 page with Care Bridge identity
 
 ## Key Commands
 

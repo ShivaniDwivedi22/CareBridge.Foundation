@@ -49,6 +49,17 @@ router.get("/bookings", async (req, res): Promise<void> => {
     bookings = bookings.filter((b) => b.status === parsed.data.status);
   }
 
+  // Filter by provider clerkId — find caregivers with matching clerkId and filter bookings
+  const providerClerkId = req.query.providerClerkId as string | undefined;
+  if (providerClerkId) {
+    const providerCaregivers = await db
+      .select({ id: caregiversTable.id })
+      .from(caregiversTable)
+      .where(eq(caregiversTable.clerkId, providerClerkId));
+    const providerCaregiverIds = new Set(providerCaregivers.map((c) => c.id));
+    bookings = bookings.filter((b) => providerCaregiverIds.has(b.caregiverId));
+  }
+
   const enriched = await enrichBookings(bookings);
   res.json(ListBookingsResponse.parse(enriched));
 });

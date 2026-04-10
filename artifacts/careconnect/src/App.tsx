@@ -20,6 +20,7 @@ import MessageThread from "@/pages/messages/[id]";
 import AdminPanel from "@/pages/admin";
 import CheckoutPage from "@/pages/payments/checkout";
 import PaymentHistory from "@/pages/payments/history";
+import PaymentSuccess from "@/pages/payments/success";
 import CancelBooking from "@/pages/bookings/cancel";
 
 const queryClient = new QueryClient();
@@ -104,6 +105,7 @@ function Router() {
           {() => <Protected component={AdminPanel} />}
         </Route>
         <Route path="/checkout" component={CheckoutPage} />
+        <Route path="/payments/success" component={PaymentSuccess} />
         <Route path="/payments/history">
           {() => <Protected component={PaymentHistory} />}
         </Route>

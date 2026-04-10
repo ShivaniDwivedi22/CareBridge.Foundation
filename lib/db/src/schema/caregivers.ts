@@ -17,6 +17,8 @@ export const caregiversTable = pgTable("caregivers", {
   certifications: text("certifications"),
   languages: text("languages"),
   services: text("services"),
+  // Clerk user ID for provider identification
+  clerkId: text("clerk_id"),
   // Provider Registration Fields
   phone: text("phone"),
   pastWorkReferences: text("past_work_references"),
