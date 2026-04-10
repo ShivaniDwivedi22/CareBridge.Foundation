@@ -203,8 +203,8 @@ export default function Caregivers() {
                   <div className="font-semibold">
                     ${caregiver.hourlyRate}<span className="text-xs text-muted-foreground font-normal">/hr</span>
                   </div>
-                  <Button asChild variant="ghost" size="sm" className="hover:bg-primary/10 hover:text-primary -mr-2">
-                    <Link href={`/caregivers/${caregiver.id}`}>Profile <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                  <Button asChild size="sm" className="rounded-full px-4 shadow-sm">
+                    <Link href={`/caregivers/${caregiver.id}`}>Book Now</Link>
                   </Button>
                 </CardFooter>
               </Card>

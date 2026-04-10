@@ -1,5 +1,4 @@
 import { useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey } from "@workspace/api-client-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -7,10 +6,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { apiUrl } from "@/lib/api";
 import {
   TrendingUp, CheckCircle2, XCircle, CreditCard,
   Users, ArrowRight, CalendarDays,
   BriefcaseMedical, CircleDot, BarChart3, ChevronRight,
+  Lock, Phone,
 } from "lucide-react";
 
 function StatCard({
@@ -38,10 +40,11 @@ function StatCard({
 }
 
 function BookingRow({
-  booking, onAccept, onReject, onComplete, onPay, onCancel, isPending,
+  booking, onAccept, onReject, onComplete, onPay, onCancel, isPending, isPaid,
 }: {
   booking: any; onAccept: () => void; onReject: () => void;
-  onComplete: () => void; onPay: () => void; onCancel: () => void; isPending: boolean;
+  onComplete: () => void; onPay: () => void; onCancel: () => void;
+  isPending: boolean; isPaid: boolean;
 }) {
   const statusConfig: Record<string, { label: string; className: string; dot: string }> = {
     pending:   { label: "Pending",   className: "bg-amber-50 text-amber-700 border-amber-200",   dot: "bg-amber-400" },
@@ -50,57 +53,76 @@ function BookingRow({
     cancelled: { label: "Cancelled", className: "bg-gray-100 text-gray-500 border-gray-200",     dot: "bg-gray-400" },
   };
   const cfg = statusConfig[booking.status] ?? statusConfig.pending;
-  const amount = Math.round((booking.caregiver?.hourlyRate ?? 25) * 8 * 100);
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-5 px-1">
-      {/* avatar placeholder */}
-      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-        {(booking.caregiver?.name ?? "?").charAt(0)}
-      </div>
+    <div className="flex flex-col gap-3 py-5 px-1">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+        {/* avatar placeholder */}
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+          {(booking.caregiver?.name ?? "?").charAt(0)}
+        </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className="font-semibold text-base truncate">{booking.caregiver?.name ?? "Unknown"}</span>
-          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.className}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-            {cfg.label}
-          </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="font-semibold text-base truncate">{booking.caregiver?.name ?? "Unknown"}</span>
+            <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.className}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+              {cfg.label}
+            </span>
+          </div>
+          <div className="text-sm text-muted-foreground truncate">
+            {booking.careRequest?.title ?? "Care Service"}
+          </div>
+          {booking.message && (
+            <div className="text-xs text-muted-foreground/70 mt-1 italic truncate">"{booking.message}"</div>
+          )}
         </div>
-        <div className="text-sm text-muted-foreground truncate">
-          {booking.careRequest?.title ?? "Care Service"}
-        </div>
-        {booking.message && (
-          <div className="text-xs text-muted-foreground/70 mt-1 italic truncate">"{booking.message}"</div>
+
+        {/* actions */}
+        {booking.status === "pending" && (
+          <div className="flex gap-2 shrink-0">
+            <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 border-red-200 h-8 px-3"
+              onClick={onReject} disabled={isPending}>
+              <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+            </Button>
+            <Button size="sm" className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white"
+              onClick={onAccept} disabled={isPending}>
+              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Accept
+            </Button>
+          </div>
+        )}
+        {booking.status === "confirmed" && !isPaid && (
+          <div className="flex gap-2 shrink-0 flex-wrap">
+            <Button size="sm" className="h-8 px-3"
+              onClick={onPay} disabled={isPending}>
+              <CreditCard className="w-3.5 h-3.5 mr-1" /> Pay Now
+            </Button>
+            <Button size="sm" variant="ghost" className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={onCancel} disabled={isPending}>
+              <XCircle className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        )}
+        {booking.status === "confirmed" && isPaid && (
+          <div className="flex gap-2 shrink-0 flex-wrap">
+            <Button size="sm" variant="outline" className="h-8 px-3" onClick={onComplete} disabled={isPending}>
+              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Done
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* actions */}
-      {booking.status === "pending" && (
-        <div className="flex gap-2 shrink-0">
-          <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 border-red-200 h-8 px-3"
-            onClick={onReject} disabled={isPending}>
-            <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
-          </Button>
-          <Button size="sm" className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white"
-            onClick={onAccept} disabled={isPending}>
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Accept
-          </Button>
+      {/* Contact info reveal after payment */}
+      {booking.status === "confirmed" && isPaid && booking.caregiver?.phone && (
+        <div className="ml-14 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-sm text-green-800">
+          <Phone className="w-4 h-4 shrink-0 text-green-600" />
+          <span>Contact unlocked: <strong>{booking.caregiver.phone}</strong></span>
         </div>
       )}
-      {booking.status === "confirmed" && (
-        <div className="flex gap-2 shrink-0 flex-wrap">
-          <Button size="sm" variant="outline" className="h-8 px-3 text-primary border-primary/30 hover:bg-primary/5"
-            onClick={onPay} disabled={isPending}>
-            <CreditCard className="w-3.5 h-3.5 mr-1" /> Pay
-          </Button>
-          <Button size="sm" variant="outline" className="h-8 px-3" onClick={onComplete} disabled={isPending}>
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Done
-          </Button>
-          <Button size="sm" variant="ghost" className="h-8 px-3 text-red-500 hover:text-red-600 hover:bg-red-50"
-            onClick={onCancel} disabled={isPending}>
-            <XCircle className="w-3.5 h-3.5" />
-          </Button>
+      {booking.status === "confirmed" && !isPaid && (
+        <div className="ml-14 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-700">
+          <Lock className="w-3.5 h-3.5 shrink-0" />
+          <span>Pay to unlock caregiver contact details</span>
         </div>
       )}
     </div>
@@ -112,6 +134,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { user } = useUser();
+  const [paidBookingIds, setPaidBookingIds] = useState<Set<number>>(new Set());
 
   const { data: stats, isLoading: isLoadingStats } = useGetStatsOverview({
     query: { queryKey: getGetStatsOverviewQueryKey() }
@@ -122,6 +145,23 @@ export default function Dashboard() {
   });
 
   const updateBooking = useUpdateBookingStatus();
+
+  // Fetch payment history to know which bookings have been paid
+  useEffect(() => {
+    const url = user?.id
+      ? apiUrl(`/api/payments/history?clerkId=${user.id}`)
+      : apiUrl("/api/payments/history");
+    fetch(url)
+      .then(r => r.json())
+      .then((payments: any[]) => {
+        if (!Array.isArray(payments)) return;
+        const paid = new Set(
+          payments.filter(p => p.status === "succeeded").map(p => Number(p.bookingId))
+        );
+        setPaidBookingIds(paid);
+      })
+      .catch(() => {});
+  }, [user?.id, bookings]);
 
   const handleStatusUpdate = (id: number, status: "confirmed" | "cancelled" | "completed") => {
     updateBooking.mutate({ id, data: { status } }, {
@@ -267,6 +307,7 @@ export default function Dashboard() {
                     key={booking.id}
                     booking={booking}
                     isPending={updateBooking.isPending}
+                    isPaid={paidBookingIds.has(booking.id)}
                     onAccept={() => handleStatusUpdate(booking.id, "confirmed")}
                     onReject={() => handleStatusUpdate(booking.id, "cancelled")}
                     onComplete={() => handleStatusUpdate(booking.id, "completed")}

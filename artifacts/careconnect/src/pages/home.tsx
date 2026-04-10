@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles, Search, HandHeart, Zap } from "lucide-react";
+import { Star, MapPin, Clock, ArrowRight, ShieldCheck, HeartHandshake, Sparkles, Search, HandHeart, Zap, Lock, PhoneCall } from "lucide-react";
 import heroImage from "@/assets/images/hero-home.png";
 import cardSeekCare from "@/assets/images/card-seek-care.png";
 import cardProvideCare from "@/assets/images/card-provide-care.png";
@@ -202,6 +202,39 @@ export default function Home() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
+      </section>
+
+      {/* Trust Section */}
+      <section className="py-16 bg-muted/30 border-y border-border/30">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">Why families trust Care Bridge</p>
+            <h2 className="font-serif text-2xl font-bold">Apka parivaar, hamari zimmedaari</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center group">
+              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-7 h-7" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Verified Caregivers</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">Every caregiver is background-checked, ID-verified, and reviewed by our trust &amp; safety team before they can accept bookings.</p>
+            </div>
+            <div className="text-center group">
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <Lock className="w-7 h-7" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Secure Payments</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">Pay safely through Stripe. Contact details are revealed only after payment is confirmed — your privacy and safety are protected.</p>
+            </div>
+            <div className="text-center group">
+              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <PhoneCall className="w-7 h-7" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Support Available</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">Our dedicated team speaks your language and is here to help you every step of the way — from search to service.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Categories */}

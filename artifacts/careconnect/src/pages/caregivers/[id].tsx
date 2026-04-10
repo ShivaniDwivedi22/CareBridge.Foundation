@@ -1,7 +1,6 @@
 import {
   useGetCaregiver,
   useCreateBooking,
-  useCreateConversation,
   useListReviews,
   useCreateReview,
   getGetCaregiverQueryKey,
@@ -18,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Star, MapPin, ShieldCheck, Clock, Award, ChevronLeft, Calendar, Languages, Briefcase, MessageCircle } from "lucide-react";
+import { Star, MapPin, ShieldCheck, Clock, Award, ChevronLeft, Calendar, Languages, Briefcase, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,7 +46,6 @@ export default function CaregiverDetail() {
   );
 
   const createBooking = useCreateBooking();
-  const createConversation = useCreateConversation();
   const createReview = useCreateReview();
 
   const handleBook = () => {
@@ -66,25 +64,6 @@ export default function CaregiverDetail() {
           description: `Your request has been sent to ${caregiver?.name}. They will respond shortly.`,
         });
         setLocation("/dashboard");
-      }
-    });
-  };
-
-  const handleMessage = () => {
-    if (!user || !caregiver) {
-      setLocation("/sign-in");
-      return;
-    }
-    createConversation.mutate({
-      data: {
-        participantAClerkId: user.id,
-        participantBClerkId: `caregiver_${caregiver.id}`,
-        participantAName: user.firstName ?? user.emailAddresses[0]?.emailAddress ?? "Seeker",
-        participantBName: caregiver.name,
-      }
-    }, {
-      onSuccess: (data) => {
-        setLocation(`/messages/${data.id}`);
       }
     });
   };
@@ -190,27 +169,27 @@ export default function CaregiverDetail() {
                   <Show when="signed-in">
                     <DialogTrigger asChild>
                       <Button className="w-full rounded-full h-12 text-lg shadow-sm hover-elevate">
-                        Request Booking
+                        Book Now
                       </Button>
                     </DialogTrigger>
                   </Show>
                   <Show when="signed-out">
                     <Button className="w-full rounded-full h-12 text-lg shadow-sm" asChild>
-                      <Link href="/sign-in">Request Booking</Link>
+                      <Link href="/sign-in">Book Now</Link>
                     </Button>
                   </Show>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Book {caregiver.name}</DialogTitle>
                       <DialogDescription>
-                        Send a message describing your care needs. {caregiver.name} will be notified immediately.
+                        Describe your care needs. {caregiver.name} will review and accept your request. Contact details are revealed after payment.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Initial Message</label>
+                        <label className="text-sm font-medium">Describe Your Care Needs</label>
                         <Textarea
-                          placeholder="Hi there, I'm looking for care for my mother..."
+                          placeholder="Hi, I'm looking for care for my mother. She needs help with..."
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
                           rows={4}
@@ -226,15 +205,10 @@ export default function CaregiverDetail() {
                   </DialogContent>
                 </Dialog>
 
-                <Button
-                  variant="outline"
-                  className="w-full rounded-full h-10"
-                  onClick={handleMessage}
-                  disabled={createConversation.isPending}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Message
-                </Button>
+                <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
+                  <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>Contact details (phone &amp; direct info) are only revealed after your booking is accepted and payment is completed.</span>
+                </div>
               </div>
 
               <p className="text-xs text-muted-foreground mt-4 text-center">

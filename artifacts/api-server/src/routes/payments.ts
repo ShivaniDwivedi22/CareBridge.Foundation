@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import Stripe from "stripe";
 import { db, bookingsTable, paymentsTable, cancellationsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
@@ -397,3 +397,59 @@ router.get("/cancellations/history", async (req, res): Promise<void> => {
 });
 
 export default router;
+
+// ── POST /api/webhooks/stripe ────────────────────────────────────────────────
+// Registered in app.ts BEFORE express.json() so req.body is still a raw Buffer.
+// Stripe sends `payment_intent.succeeded` events here to keep booking status in sync.
+export const stripeWebhookHandler = async (req: Request, res: Response): Promise<void> => {
+  const sig = req.headers["stripe-signature"] as string | undefined;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event: Stripe.Event;
+
+  try {
+    const stripe = getStripe();
+    if (webhookSecret && sig) {
+      // Production path: verify signature
+      event = stripe.webhooks.constructEvent(req.body as Buffer, sig, webhookSecret);
+    } else {
+      // Dev path: parse raw body without verification
+      const raw = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
+      event = JSON.parse(raw) as Stripe.Event;
+      logger.warn("Stripe webhook: no signature verification (STRIPE_WEBHOOK_SECRET not set)");
+    }
+  } catch (err: any) {
+    logger.error({ err }, "Stripe webhook signature verification failed");
+    res.status(400).json({ error: `Webhook error: ${err.message}` });
+    return;
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const intent = event.data.object as Stripe.PaymentIntent;
+    const bookingId = parseInt(intent.metadata?.bookingId ?? "0", 10);
+
+    if (bookingId) {
+      await db
+        .update(paymentsTable)
+        .set({ status: "succeeded", paidAt: new Date() })
+        .where(eq(paymentsTable.stripePaymentIntentId, intent.id));
+
+      await db
+        .update(bookingsTable)
+        .set({ status: "confirmed" })
+        .where(eq(bookingsTable.id, bookingId));
+
+      logger.info({ bookingId, intentId: intent.id }, "Webhook: booking confirmed via payment_intent.succeeded");
+    }
+  }
+
+  if (event.type === "payment_intent.payment_failed") {
+    const intent = event.data.object as Stripe.PaymentIntent;
+    await db
+      .update(paymentsTable)
+      .set({ status: "failed" })
+      .where(eq(paymentsTable.stripePaymentIntentId, intent.id));
+  }
+
+  res.json({ received: true });
+};

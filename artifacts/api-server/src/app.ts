@@ -4,9 +4,13 @@ import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { CLERK_PROXY_PATH, clerkProxyMiddleware } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import { stripeWebhookHandler } from "./routes/payments";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+// Stripe webhooks need raw body — must be registered BEFORE express.json()
+app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
 app.use(
   pinoHttp({
