@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Clock, Calendar, ChevronLeft, User, DollarSign, AlertCircle } from "lucide-react";
+import { MapPin, Clock, Calendar, ChevronLeft, User, DollarSign, Star } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function CareRequestDetail() {

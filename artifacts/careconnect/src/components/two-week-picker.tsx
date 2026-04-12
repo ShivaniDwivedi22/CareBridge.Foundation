@@ -143,13 +143,11 @@ export function TwoWeekPicker({
 
   const toggle = (date: Date, slot: Slot) => {
     const key = `${fmtDate(date)}:${slot}`;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      onChange(serialize(next));
-      return next;
-    });
+    const next = new Set(selected);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setSelected(next);
+    onChange(serialize(next));
   };
 
   const count = selected.size;
