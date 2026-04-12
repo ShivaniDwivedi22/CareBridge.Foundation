@@ -363,6 +363,11 @@ export default function CaregiverDetail() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-2xl font-bold">Reviews</h2>
+              {user && caregiver.clerkId && user.id === caregiver.clerkId ? (
+                <span className="text-xs text-muted-foreground italic border border-border/50 rounded-full px-3 py-1.5">
+                  You cannot review your own profile
+                </span>
+              ) : (
               <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full">
@@ -428,6 +433,7 @@ export default function CaregiverDetail() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+              )}
             </div>
 
             {!reviews || reviews.length === 0 ? (

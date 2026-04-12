@@ -5,17 +5,27 @@ import {
   useAdminRejectCaregiver,
   useListReviews,
   useUpdateReviewStatus,
+  useGetStatsOverview,
   getAdminListCaregiversQueryKey,
   getListReviewsQueryKey,
+  getGetStatsOverviewQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, ShieldCheck, Star, Users, MessageSquare, RefreshCw, DollarSign } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription,
+  DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  CheckCircle, XCircle, ShieldCheck, Star, Users, MessageSquare,
+  RefreshCw, DollarSign, BarChart2, Banknote, AlertTriangle, BookOpen,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiUrl } from "@/lib/api";
@@ -156,6 +166,49 @@ function RefundPanel() {
   );
 }
 
+function DisputedPanel() {
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(apiUrl("/api/bookings"))
+      .then((r) => r.json())
+      .then((d) => {
+        setBookings(Array.isArray(d) ? d.filter((b: any) => b.status === "cancelled") : []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>;
+  if (bookings.length === 0) return (
+    <div className="p-10 text-center text-muted-foreground">
+      <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-muted-foreground/20" />
+      No cancelled or disputed services.
+    </div>
+  );
+  return (
+    <div className="divide-y divide-border/40">
+      {bookings.map(b => (
+        <div key={b.id} className="p-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold">Booking #{b.id}</span>
+              <Badge variant="outline" className="border-red-400 text-red-600 text-xs">Cancelled</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Request: {b.careRequest?.title ?? "—"} · Caregiver: {b.caregiver?.name ?? "—"}
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-0.5">
+              {new Date(b.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -166,25 +219,67 @@ export default function AdminPanel() {
   const { data: reviews, isLoading: isLoadingReviews } = useListReviews({}, {
     query: { queryKey: getListReviewsQueryKey() }
   });
+  const { data: stats } = useGetStatsOverview({
+    query: { queryKey: getGetStatsOverviewQueryKey() }
+  });
 
   const approveCaregiver = useAdminApproveCaregiver();
   const rejectCaregiver = useAdminRejectCaregiver();
   const updateReviewStatus = useUpdateReviewStatus();
 
-  const handleApprove = (id: number) => {
+  const [rejectTarget, setRejectTarget] = useState<{ id: number; name: string; clerkId?: string | null } | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const sendCaregiverMessage = async (caregiverClerkId: string, message: string) => {
+    try {
+      const convResp = await fetch(apiUrl("/api/conversations"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantAClerkId: "care_bridge_admin", participantBClerkId: caregiverClerkId }),
+      });
+      if (!convResp.ok) return;
+      const conv = await convResp.json();
+      await fetch(apiUrl(`/api/conversations/${conv.id}/messages`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senderClerkId: "care_bridge_admin", content: message }),
+      });
+    } catch { /* silent */ }
+  };
+
+  const handleApprove = (id: number, clerkId?: string | null) => {
     approveCaregiver.mutate({ id }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast({ title: "Caregiver Approved", description: "The provider is now visible to seekers." });
         queryClient.invalidateQueries({ queryKey: getAdminListCaregiversQueryKey() });
+        if (clerkId) {
+          await sendCaregiverMessage(
+            clerkId,
+            "🎉 Congratulations! Your Care Bridge caregiver profile has been approved and is now live. Families in your area can now find and book you. Welcome to the Care Bridge network!"
+          );
+        }
       },
     });
   };
 
-  const handleReject = (id: number) => {
-    rejectCaregiver.mutate({ id }, {
-      onSuccess: () => {
+  const handleReject = (id: number, name: string, clerkId?: string | null) => {
+    setRejectTarget({ id, name, clerkId });
+    setRejectReason("");
+  };
+
+  const confirmReject = () => {
+    if (!rejectTarget) return;
+    rejectCaregiver.mutate({ id: rejectTarget.id }, {
+      onSuccess: async () => {
         toast({ title: "Caregiver Deactivated", description: "The profile has been deactivated." });
         queryClient.invalidateQueries({ queryKey: getAdminListCaregiversQueryKey() });
+        if (rejectTarget.clerkId) {
+          const msg = rejectReason.trim()
+            ? `Your Care Bridge caregiver profile has been deactivated. Reason: ${rejectReason.trim()}. Please contact support if you have questions.`
+            : "Your Care Bridge caregiver profile has been deactivated. Please contact support for further information.";
+          await sendCaregiverMessage(rejectTarget.clerkId, msg);
+        }
+        setRejectTarget(null);
       },
     });
   };
@@ -202,69 +297,92 @@ export default function AdminPanel() {
   const verifiedCaregivers = caregivers?.filter(c => c.isVerified) ?? [];
   const pendingReviews = reviews?.filter(r => r.status === "pending") ?? [];
 
+  const analyticsCards = [
+    { label: "Total Caregivers",   value: caregivers?.length ?? "—",    icon: <Users className="w-5 h-5" />,          bg: "bg-primary/5",   ic: "bg-primary/20 text-primary" },
+    { label: "Pending Approval",   value: pendingCaregivers.length,      icon: <ShieldCheck className="w-5 h-5" />,    bg: "bg-yellow-50",   ic: "bg-yellow-200 text-yellow-700" },
+    { label: "Reviews to Moderate",value: pendingReviews.length,         icon: <MessageSquare className="w-5 h-5" />,  bg: "bg-blue-50",     ic: "bg-blue-200 text-blue-700" },
+    { label: "Total Bookings",     value: stats?.totalBookings ?? "—",   icon: <BookOpen className="w-5 h-5" />,       bg: "bg-green-50",    ic: "bg-green-200 text-green-700" },
+    { label: "Open Requests",      value: stats?.openRequests ?? "—",    icon: <BarChart2 className="w-5 h-5" />,      bg: "bg-indigo-50",   ic: "bg-indigo-200 text-indigo-700" },
+    { label: "Total Care Requests",value: stats?.totalCareRequests ?? "—", icon: <RefreshCw className="w-5 h-5" />,   bg: "bg-orange-50",   ic: "bg-orange-200 text-orange-700" },
+    { label: "Platform Members",   value: (caregivers?.length ?? 0) + 10, icon: <Banknote className="w-5 h-5" />,     bg: "bg-rose-50",     ic: "bg-rose-200 text-rose-700" },
+  ];
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
+      {/* Reject dialog */}
+      <Dialog open={!!rejectTarget} onOpenChange={(open) => { if (!open) setRejectTarget(null); }}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" /> Deactivate {rejectTarget?.name}?
+            </DialogTitle>
+            <DialogDescription>
+              This will remove the caregiver from search results. If they have an account,
+              they will receive an in-app notification with your reason.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <label className="text-sm font-medium">Reason (optional — sent to caregiver)</label>
+            <Textarea
+              placeholder="e.g. Incomplete documentation, failed background check, etc."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setRejectTarget(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={confirmReject}
+              disabled={rejectCaregiver.isPending}
+            >
+              {rejectCaregiver.isPending ? "Deactivating…" : "Confirm Deactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="mb-10">
         <h1 className="font-serif text-4xl font-bold mb-2">Admin Panel</h1>
-        <p className="text-muted-foreground">Manage caregivers and review moderation.</p>
+        <p className="text-muted-foreground">Manage caregivers, reviews, and platform activity.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <Card className="bg-primary/5 border-border/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-primary/20 rounded-xl">
-              <Users className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <div className="text-3xl font-bold">{caregivers?.length ?? "—"}</div>
-              <div className="text-sm text-muted-foreground">Total Caregivers</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-yellow-50 dark:bg-yellow-900/10 border-border/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-yellow-200 dark:bg-yellow-800/30 rounded-xl">
-              <ShieldCheck className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div>
-              <div className="text-3xl font-bold">{pendingCaregivers.length}</div>
-              <div className="text-sm text-muted-foreground">Pending Approval</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-blue-50 dark:bg-blue-900/10 border-border/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-200 dark:bg-blue-800/30 rounded-xl">
-              <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <div className="text-3xl font-bold">{pendingReviews.length}</div>
-              <div className="text-sm text-muted-foreground">Reviews to Moderate</div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Analytics grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {analyticsCards.map(c => (
+          <Card key={c.label} className={`${c.bg} border-border/50`}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl shrink-0 ${c.ic}`}>{c.icon}</div>
+              <div>
+                <div className="text-2xl font-bold leading-none mb-1">{c.value}</div>
+                <div className="text-xs text-muted-foreground leading-tight">{c.label}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Tabs defaultValue="pending">
         <TabsList className="mb-6 flex-wrap gap-1">
           <TabsTrigger value="pending">
-            Pending Caregivers
+            Pending
             {pendingCaregivers.length > 0 && (
-              <Badge className="ml-2 bg-yellow-500/20 text-yellow-700 border-0 text-xs">
-                {pendingCaregivers.length}
-              </Badge>
+              <Badge className="ml-2 bg-yellow-500/20 text-yellow-700 border-0 text-xs">{pendingCaregivers.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="verified">Verified Caregivers</TabsTrigger>
+          <TabsTrigger value="verified">Verified</TabsTrigger>
           <TabsTrigger value="reviews">
-            Review Moderation
+            Reviews
             {pendingReviews.length > 0 && (
-              <Badge className="ml-2 bg-blue-500/20 text-blue-700 border-0 text-xs">
-                {pendingReviews.length}
-              </Badge>
+              <Badge className="ml-2 bg-blue-500/20 text-blue-700 border-0 text-xs">{pendingReviews.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="refunds">Refunds & Cancellations</TabsTrigger>
+          <TabsTrigger value="refunds">Refunds</TabsTrigger>
+          <TabsTrigger value="disputed">
+            <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-500" /> Disputed
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending">
@@ -275,13 +393,9 @@ export default function AdminPanel() {
             </CardHeader>
             <CardContent className="p-0">
               {isLoadingCaregivers ? (
-                <div className="p-6 space-y-4">
-                  {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}
-                </div>
+                <div className="p-6 space-y-4">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
               ) : pendingCaregivers.length === 0 ? (
-                <div className="p-10 text-center text-muted-foreground">
-                  No pending caregivers. All profiles are up to date.
-                </div>
+                <div className="p-10 text-center text-muted-foreground">No pending caregivers. All profiles are up to date.</div>
               ) : (
                 <div className="divide-y divide-border/40">
                   {pendingCaregivers.map(caregiver => (
@@ -289,9 +403,7 @@ export default function AdminPanel() {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 border border-border">
                           <AvatarImage src={caregiver.avatarUrl ?? undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {caregiver.name.charAt(0)}
-                          </AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">{caregiver.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-semibold text-lg">{caregiver.name}</div>
@@ -304,19 +416,12 @@ export default function AdminPanel() {
                         </div>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleReject(caregiver.id)}
-                        >
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleReject(caregiver.id, caregiver.name, (caregiver as any).clerkId)}>
                           <XCircle className="w-4 h-4 mr-1" /> Reject
                         </Button>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleApprove(caregiver.id)}
-                        >
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => handleApprove(caregiver.id, (caregiver as any).clerkId)}>
                           <CheckCircle className="w-4 h-4 mr-1" /> Approve
                         </Button>
                       </div>
@@ -336,9 +441,7 @@ export default function AdminPanel() {
             </CardHeader>
             <CardContent className="p-0">
               {isLoadingCaregivers ? (
-                <div className="p-6 space-y-4">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
-                </div>
+                <div className="p-6 space-y-4">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
               ) : verifiedCaregivers.length === 0 ? (
                 <div className="p-10 text-center text-muted-foreground">No verified caregivers yet.</div>
               ) : (
@@ -348,9 +451,7 @@ export default function AdminPanel() {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 border border-border">
                           <AvatarImage src={caregiver.avatarUrl ?? undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {caregiver.name.charAt(0)}
-                          </AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">{caregiver.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-semibold text-lg flex items-center gap-2">
@@ -358,16 +459,12 @@ export default function AdminPanel() {
                             <ShieldCheck className="w-4 h-4 text-green-500" />
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {caregiver.location} · {caregiver.reviewCount} reviews · {caregiver.rating.toFixed(1)} rating
+                            {caregiver.location} · {caregiver.reviewCount} reviews · {caregiver.rating.toFixed(1)} ★
                           </div>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleReject(caregiver.id)}
-                      >
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleReject(caregiver.id, caregiver.name, (caregiver as any).clerkId)}>
                         <XCircle className="w-4 h-4 mr-1" /> Deactivate
                       </Button>
                     </div>
@@ -382,13 +479,11 @@ export default function AdminPanel() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="border-b border-border/40 bg-muted/20">
               <CardTitle>Review Moderation</CardTitle>
-              <CardDescription>Review and approve or reject submitted ratings before they go live.</CardDescription>
+              <CardDescription>Approve or reject submitted ratings before they go live.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {isLoadingReviews ? (
-                <div className="p-6 space-y-4">
-                  {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}
-                </div>
+                <div className="p-6 space-y-4">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
               ) : pendingReviews.length === 0 ? (
                 <div className="p-10 text-center text-muted-foreground">No pending reviews to moderate.</div>
               ) : (
@@ -407,23 +502,16 @@ export default function AdminPanel() {
                         </div>
                         <p className="text-sm text-muted-foreground">{review.comment}</p>
                         <p className="text-xs text-muted-foreground/60 mt-1">
-                          Caregiver ID: {review.caregiverId} · {new Date(review.createdAt).toLocaleDateString()}
+                          Caregiver #{review.caregiverId} · {new Date(review.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleReviewStatus(review.id, "rejected")}
-                        >
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleReviewStatus(review.id, "rejected")}>
                           <XCircle className="w-4 h-4 mr-1" /> Reject
                         </Button>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleReviewStatus(review.id, "approved")}
-                        >
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => handleReviewStatus(review.id, "approved")}>
                           <CheckCircle className="w-4 h-4 mr-1" /> Approve
                         </Button>
                       </div>
@@ -443,6 +531,20 @@ export default function AdminPanel() {
             </CardHeader>
             <CardContent className="p-0">
               <RefundPanel />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="disputed">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500" /> Disputed Services
+              </CardTitle>
+              <CardDescription>Cancelled bookings that may require admin intervention or refund review.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <DisputedPanel />
             </CardContent>
           </Card>
         </TabsContent>

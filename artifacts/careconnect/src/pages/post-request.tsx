@@ -1,6 +1,7 @@
 import { useCreateCareRequest, useListCategories } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,19 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const CATEGORY_HEADLINES: Record<string, string> = {
+  "Elderly Care":       "Looking for a compassionate caregiver for my elderly parent",
+  "Child Care":         "Seeking a reliable and experienced child care professional",
+  "Newborn Care":       "Need a skilled newborn care specialist for our new baby",
+  "Postpartum Care":    "Looking for postpartum support and new mother care",
+  "Pet Care":           "Need a trusted pet sitter / dog walker for my furry family",
+  "House Help":         "Seeking reliable household help and domestic assistance",
+  "Kitchen & Food Help": "Looking for cooking and meal preparation support at home",
+  "Event Support":      "Need helping hands for an upcoming family event",
+  "Travel & Medical Care": "Seeking a travel companion and medical support assistant",
+  "Special Needs Care": "Looking for a compassionate special needs care professional",
+};
+
 export default function PostRequest() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -44,6 +58,20 @@ export default function PostRequest() {
       seekerName: "",
     },
   });
+
+  const watchedCategoryId = useWatch({ control: form.control, name: "categoryId" });
+
+  useEffect(() => {
+    if (!watchedCategoryId || !categories) return;
+    const cat = categories.find(c => c.id === Number(watchedCategoryId));
+    if (!cat) return;
+    const suggested = CATEGORY_HEADLINES[cat.name] ?? `Looking for a ${cat.name.toLowerCase()} professional`;
+    const currentTitle = form.getValues("title");
+    const prevValues = Object.values(CATEGORY_HEADLINES);
+    if (!currentTitle || prevValues.some(v => currentTitle === v)) {
+      form.setValue("title", suggested, { shouldValidate: false });
+    }
+  }, [watchedCategoryId, categories]);
 
   function onSubmit(data: FormValues) {
     createRequest.mutate({
@@ -146,16 +174,24 @@ export default function PostRequest() {
                 <FormField
                   control={form.control}
                   name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Headline</FormLabel>
-                      <FormControl>
-                        <Input placeholder="E.g. Need experienced caregiver for elderly mother" {...field} />
-                      </FormControl>
-                      <FormDescription>A brief summary of what you need.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const isSuggested = Object.values(CATEGORY_HEADLINES).includes(field.value);
+                    return (
+                      <FormItem>
+                        <FormLabel>Headline</FormLabel>
+                        <FormControl>
+                          <Input placeholder="E.g. Need experienced caregiver for elderly mother" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          {isSuggested && field.value
+                            ? <span className="text-primary font-medium">✦ Auto-suggested from category — feel free to edit</span>
+                            : "A brief summary of what you need."
+                          }
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField

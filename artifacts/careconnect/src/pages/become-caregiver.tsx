@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { AvailabilityPicker } from "@/components/availability-picker";
+import { TwoWeekPicker } from "@/components/two-week-picker";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -177,6 +177,27 @@ export default function BecomeCaregiver() {
     mode: "onChange",
   });
 
+  type RefEntry = { name: string; contact: string; relationship: string };
+  const EMPTY_REFS: RefEntry[] = [
+    { name: "", contact: "", relationship: "" },
+    { name: "", contact: "", relationship: "" },
+    { name: "", contact: "", relationship: "" },
+  ];
+  const [refEntries, setRefEntries] = useState<RefEntry[]>(EMPTY_REFS);
+  const [complianceError, setComplianceError] = useState(false);
+
+  const serializeRefs = (entries: RefEntry[]) =>
+    entries
+      .filter((r) => r.name.trim())
+      .map((r) => `${r.name.trim()} · ${r.contact.trim() || "no contact"} · ${r.relationship || "Reference"}`)
+      .join("\n");
+
+  const updateRef = (idx: number, field: keyof RefEntry, value: string) => {
+    const next = refEntries.map((r, i) => i === idx ? { ...r, [field]: value } : r);
+    setRefEntries(next);
+    form.setValue("pastWorkReferences", serializeRefs(next), { shouldValidate: false });
+  };
+
   const selectedCategoryIds = form.watch("categoryIds");
   const selectedSlugs = categories
     ?.filter((c) => selectedCategoryIds.includes(c.id))
@@ -213,6 +234,7 @@ export default function BecomeCaregiver() {
   const handleBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   function onSubmit(data: FormValues) {
+    setComplianceError(false);
     const payload = { ...data, clerkId: user?.id };
     createCaregiver.mutate({ data: payload as any }, {
       onSuccess: (result) => {
@@ -227,6 +249,20 @@ export default function BecomeCaregiver() {
       },
     });
   }
+
+  const handleSubmitWithComplianceCheck = () => {
+    const vals = form.getValues();
+    const liabilityRequired = getReqLevel("liabilityWaiverAccepted", selectedSlugs) !== "N";
+    const allChecked =
+      vals.termsAccepted === true &&
+      vals.codeOfConductAccepted === true &&
+      (!liabilityRequired || vals.liabilityWaiverAccepted === true);
+    if (!allChecked) {
+      setComplianceError(true);
+      return;
+    }
+    form.handleSubmit(onSubmit)();
+  };
 
   return (
     <div className="min-h-screen bg-muted/10 py-12 md:py-20">
@@ -434,18 +470,53 @@ export default function BecomeCaregiver() {
                         )} />
 
                         {getReqLevel("pastWorkReferences", selectedSlugs) !== "N" && (
-                          <FormField control={form.control} name="pastWorkReferences" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm font-medium leading-none mb-1">
                                 Past Work References
                                 <ReqBadge level={getReqLevel("pastWorkReferences", selectedSlugs)} />
-                              </FormLabel>
-                              <FormDescription>List previous employers or families you have worked with (name + contact).</FormDescription>
-                              <FormControl>
-                                <Textarea placeholder="Reference 1: Jane Doe, +1 555-1234&#10;Reference 2: ..." rows={3} {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )} />
+                              </p>
+                              <p className="text-xs text-muted-foreground">Add up to 3 references — people who can vouch for your caregiving work.</p>
+                            </div>
+                            {refEntries.map((ref, idx) => (
+                              <div key={idx} className="rounded-xl border border-border/50 bg-muted/10 p-4 space-y-3">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Reference {idx + 1}</p>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium">Full Name</label>
+                                    <Input
+                                      placeholder="Jane Doe"
+                                      value={ref.name}
+                                      onChange={(e) => updateRef(idx, "name", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium">Phone or Email</label>
+                                    <Input
+                                      placeholder="+1 555-1234 or jane@email.com"
+                                      value={ref.contact}
+                                      onChange={(e) => updateRef(idx, "contact", e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-xs font-medium">Relationship</label>
+                                  <Select value={ref.relationship} onValueChange={(v) => updateRef(idx, "relationship", v)}>
+                                    <SelectTrigger className="h-9 text-sm">
+                                      <SelectValue placeholder="Select relationship…" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Former Employer">Former Employer</SelectItem>
+                                      <SelectItem value="Family Client">Family Client (Care Recipient's Family)</SelectItem>
+                                      <SelectItem value="Professional Colleague">Professional Colleague</SelectItem>
+                                      <SelectItem value="Community Leader">Community / Religious Leader</SelectItem>
+                                      <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </>
                     )}
@@ -535,18 +606,6 @@ export default function BecomeCaregiver() {
                           )} />
                         )}
 
-                        {getReqLevel("medicalNursingLicense", selectedSlugs) !== "N" && (
-                          <FormField control={form.control} name="medicalNursingLicense" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Medical / Nursing License Number
-                                <ReqBadge level={getReqLevel("medicalNursingLicense", selectedSlugs)} />
-                              </FormLabel>
-                              <FormControl><Input placeholder="RN-12345678" {...field} /></FormControl>
-                            </FormItem>
-                          )} />
-                        )}
-
                         {getReqLevel("foodSafetyCertificate", selectedSlugs) !== "N" && (
                           <FormField control={form.control} name="foodSafetyCertificate" render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
@@ -577,7 +636,6 @@ export default function BecomeCaregiver() {
                         )}
 
                         {getReqLevel("certifications", selectedSlugs) === "N" &&
-                          getReqLevel("medicalNursingLicense", selectedSlugs) === "N" &&
                           getReqLevel("foodSafetyCertificate", selectedSlugs) === "N" &&
                           getReqLevel("insuranceLicense", selectedSlugs) === "N" && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
@@ -646,9 +704,9 @@ export default function BecomeCaregiver() {
                         <FormField control={form.control} name="availabilitySchedule" render={({ field }) => (
                           <FormItem>
                             <FormLabel>Availability Schedule <span className="text-red-500">*</span></FormLabel>
-                            <FormDescription>Describe your typical availability (days, hours, overnight, etc.).</FormDescription>
+                            <FormDescription>Click the time slots you're available over the next 2 weeks.</FormDescription>
                             <FormControl>
-                              <Textarea placeholder="Monday–Friday, 8am–6pm. Available weekends with advance notice. No overnight shifts." rows={3} {...field} />
+                              <TwoWeekPicker value={field.value} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -704,6 +762,13 @@ export default function BecomeCaregiver() {
                         <p className="text-sm text-muted-foreground">
                           Please review and accept all applicable agreements before submitting your application.
                         </p>
+
+                        {complianceError && (
+                          <div className="flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            <span className="font-bold shrink-0">⚠</span>
+                            <span>Please check all required compliance boxes before submitting your application.</span>
+                          </div>
+                        )}
 
                         <FormField control={form.control} name="termsAccepted" render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
@@ -781,7 +846,9 @@ export default function BecomeCaregiver() {
                       Continue <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   ) : (
-                    <Button type="submit" size="lg" className="flex-1 sm:flex-none rounded-full h-12 shadow-md" disabled={createCaregiver.isPending}>
+                    <Button type="button" size="lg" className="flex-1 sm:flex-none rounded-full h-12 shadow-md"
+                      disabled={createCaregiver.isPending}
+                      onClick={handleSubmitWithComplianceCheck}>
                       {createCaregiver.isPending ? "Submitting..." : "Submit Application"}
                     </Button>
                   )}

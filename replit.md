@@ -28,14 +28,17 @@ CareConnect — a care-giving marketplace web app connecting caregivers to care 
 - Browse caregivers by category (Pet Care, Newborn, Postpartum, Elderly, Special Needs, Child Care, House Help, Kitchen & Food Help, Event Support, Travel & Medical Care)
 - Caregiver profiles with ratings, reviews, hourly rate, verification badge, and trust signals
 - Post care requests as a care seeker
-- Register as a caregiver (7-step form with AvailabilityPicker, saves clerkId for provider mode)
+- Register as a caregiver (7-step form with **TwoWeekPicker** availability, structured 3-reference rows, saves clerkId)
 - **Dashboard with Seeker/Provider tabs** — "Seeking Care" mode filters own bookings; "Providing Care" mode fetches via API using caregiver clerkId
+- **Clickable KPI tiles** on dashboard (filter view to Completed/In Progress/Pending, Payments Made navigates to history)
 - Mini booking journey indicator (6-step progress bar) on each booking row
+- **Self-review prevention** on caregiver profile (hides Write Review button if caregiver.clerkId === user.id)
+- **Post-request auto-suggest** headline from selected category
 - **Review CTA** for completed bookings
 - **Post-payment success page** at `/payments/success` — shows "Shukriya!" celebration, phone contact reveal, 6-step journey
 - Checkout redirects to `/payments/success` after confirmed payment
 - In-platform messaging (conversations + threads)
-- Admin panel (caregiver approval, review moderation, refunds & cancellations tab)
+- **Admin panel** — caregiver approval/rejection with reason dialog, in-app notifications on approve/reject, 7-card analytics, review moderation, refunds, Disputed Services tab
 - Payments (Stripe): create PaymentIntent, confirm payment, receipts, 15% platform commission
 - Cancellation & Refunds: tiered policy (48h+ = 100%, 24–48h = 50%, <24h = 0%), admin override
 - Geo-location search (Nominatim)

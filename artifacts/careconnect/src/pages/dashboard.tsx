@@ -12,7 +12,7 @@ import {
   TrendingUp, CheckCircle2, XCircle, CreditCard,
   Users, ArrowRight, CalendarDays, Star,
   BriefcaseMedical, CircleDot, BarChart3, ChevronRight,
-  Lock, Phone, MessageCircle, HeartHandshake, Search,
+  Lock, Phone, MessageCircle, HeartHandshake, Search, Filter,
 } from "lucide-react";
 
 // ── Journey steps helper ─────────────────────────────────────────────────────
@@ -46,20 +46,31 @@ function MiniJourney({ status, isPaid }: { status: string; isPaid: boolean }) {
 // ── Stat card ─────────────────────────────────────────────────────────────────
 function StatCard({
   label, value, icon, colorClass, bgClass, loading, prefix = "", suffix = "",
+  onClick, isActive,
 }: {
   label: string; value?: number | string; icon: React.ReactNode;
   colorClass: string; bgClass: string; loading: boolean;
   prefix?: string; suffix?: string;
+  onClick?: () => void; isActive?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl p-5 border border-border/40 shadow-sm ${bgClass} flex flex-col gap-3`}>
+    <div
+      onClick={onClick}
+      className={`rounded-2xl p-5 border shadow-sm flex flex-col gap-3 transition-all
+        ${bgClass}
+        ${onClick ? "cursor-pointer hover:shadow-md" : ""}
+        ${isActive ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "border-border/40"}
+      `}
+    >
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorClass} shrink-0`}>
         {icon}
       </div>
       {loading ? <Skeleton className="h-8 w-20" /> : (
         <div className="text-2xl font-bold tracking-tight text-foreground">{prefix}{value ?? 0}{suffix}</div>
       )}
-      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</div>
+      <div className={`text-xs font-medium uppercase tracking-wider ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+        {label} {onClick && !isActive ? <span className="normal-case text-muted-foreground/50">↗</span> : ""}
+      </div>
     </div>
   );
 }
@@ -188,6 +199,7 @@ export default function Dashboard() {
   const { user } = useUser();
   const [paidBookingIds, setPaidBookingIds] = useState<Set<number>>(new Set());
   const [dashMode, setDashMode] = useState<"seeker" | "provider">("seeker");
+  const [focusStatus, setFocusStatus] = useState<string | null>(null);
   const [providerBookings, setProviderBookings] = useState<any[]>([]);
   const [loadingProvider, setLoadingProvider] = useState(false);
 
@@ -305,17 +317,41 @@ export default function Dashboard() {
         >
           <StatCard label="Completed" value={allCompleted.length}
             icon={<CheckCircle2 className="w-5 h-5" />}
-            colorClass="bg-blue-100 text-blue-600" bgClass="bg-white" loading={isLoadingBookings} />
+            colorClass="bg-blue-100 text-blue-600" bgClass="bg-white" loading={isLoadingBookings}
+            onClick={() => setFocusStatus(focusStatus === "completed" ? null : "completed")}
+            isActive={focusStatus === "completed"} />
           <StatCard label="In Progress" value={inProgress.length}
             icon={<CircleDot className="w-5 h-5" />}
-            colorClass="bg-green-100 text-green-600" bgClass="bg-white" loading={isLoadingBookings} />
+            colorClass="bg-green-100 text-green-600" bgClass="bg-white" loading={isLoadingBookings}
+            onClick={() => setFocusStatus(focusStatus === "confirmed" ? null : "confirmed")}
+            isActive={focusStatus === "confirmed"} />
           <StatCard label="Pending" value={upcoming.length}
             icon={<CalendarDays className="w-5 h-5" />}
-            colorClass="bg-amber-100 text-amber-600" bgClass="bg-white" loading={isLoadingBookings} />
+            colorClass="bg-amber-100 text-amber-600" bgClass="bg-white" loading={isLoadingBookings}
+            onClick={() => setFocusStatus(focusStatus === "pending" ? null : "pending")}
+            isActive={focusStatus === "pending"} />
           <StatCard label="Payments Made" value={totalPaid}
             icon={<CreditCard className="w-5 h-5" />}
-            colorClass="bg-primary/15 text-primary" bgClass="bg-white" loading={isLoadingBookings} />
+            colorClass="bg-primary/15 text-primary" bgClass="bg-white" loading={isLoadingBookings}
+            prefix="$"
+            onClick={() => setLocation("/payments/history")} />
         </motion.div>
+
+        {/* Active filter banner */}
+        {focusStatus && (
+          <div className="flex items-center gap-2 mb-4 -mt-3">
+            <span className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 text-primary text-sm font-medium rounded-full px-3.5 py-1.5">
+              <Filter className="w-3.5 h-3.5" />
+              Showing: {focusStatus === "confirmed" ? "In Progress" : focusStatus === "pending" ? "Pending" : "Completed"}
+              <button
+                onClick={() => setFocusStatus(null)}
+                className="ml-1 opacity-60 hover:opacity-100 transition-opacity font-bold"
+              >
+                × Clear
+              </button>
+            </span>
+          </div>
+        )}
 
         {/* Mode toggle */}
         <motion.div
@@ -361,7 +397,7 @@ export default function Dashboard() {
           >
             {/* In Progress — 2 cols */}
             <div className="lg:col-span-2 space-y-5">
-              <div className="bg-white rounded-2xl border border-border/40 shadow-sm overflow-hidden">
+              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "confirmed" ? "border-green-400 ring-2 ring-green-200" : focusStatus && focusStatus !== "confirmed" ? "opacity-50" : "border-border/40"}`}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                   <div>
                     <h2 className="font-semibold text-sm flex items-center gap-2">
@@ -417,8 +453,8 @@ export default function Dashboard() {
               </div>
 
               {/* Completed bookings with review CTA */}
-              {completed.length > 0 && (
-                <div className="bg-white rounded-2xl border border-border/40 shadow-sm overflow-hidden">
+              {(completed.length > 0 || focusStatus === "completed") && (
+                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "completed" ? "border-blue-400 ring-2 ring-blue-200" : focusStatus && focusStatus !== "completed" ? "opacity-50" : "border-border/40"}`}>
                   <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                     <h2 className="font-semibold text-sm flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500" />
@@ -446,7 +482,7 @@ export default function Dashboard() {
             {/* Right column */}
             <div className="flex flex-col gap-5">
               {/* Pending requests */}
-              <div className="bg-white rounded-2xl border border-border/40 shadow-sm overflow-hidden">
+              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "pending" ? "border-amber-400 ring-2 ring-amber-200" : focusStatus && focusStatus !== "pending" ? "opacity-50" : "border-border/40"}`}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                   <div>
                     <h2 className="font-semibold text-sm flex items-center gap-2">
