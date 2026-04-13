@@ -71,6 +71,28 @@ router.post("/caregivers", async (req, res): Promise<void> => {
     return;
   }
 
+  if (parsed.data.clerkId) {
+    const [existingClerk] = await db
+      .select({ id: caregiversTable.id })
+      .from(caregiversTable)
+      .where(eq(caregiversTable.clerkId, parsed.data.clerkId));
+    if (existingClerk) {
+      res.status(409).json({ error: "You are already registered as a caregiver.", code: "DUPLICATE_CLERK_ID" });
+      return;
+    }
+  }
+
+  if (parsed.data.phone) {
+    const [existingPhone] = await db
+      .select({ id: caregiversTable.id })
+      .from(caregiversTable)
+      .where(eq(caregiversTable.phone, parsed.data.phone));
+    if (existingPhone) {
+      res.status(409).json({ error: "A caregiver account with this phone number already exists.", code: "DUPLICATE_PHONE" });
+      return;
+    }
+  }
+
   const [caregiver] = await db
     .insert(caregiversTable)
     .values(parsed.data)

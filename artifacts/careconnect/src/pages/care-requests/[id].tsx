@@ -1,26 +1,89 @@
-import { useGetCareRequest, getGetCareRequestQueryKey, useListCaregivers } from "@workspace/api-client-react";
-import { useParams, Link } from "wouter";
+import { useGetCareRequest, getGetCareRequestQueryKey, useListCaregivers, useCreateBooking } from "@workspace/api-client-react";
+import { useParams, Link, useLocation } from "wouter";
+import { useState } from "react";
+import { useUser } from "@clerk/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Clock, Calendar, ChevronLeft, User, DollarSign, Star } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MapPin, Clock, Calendar, ChevronLeft, User, DollarSign, Star, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CareRequestDetail() {
   const params = useParams();
   const id = parseInt(params.id || "0");
+  const [, setLocation] = useLocation();
+  const { user } = useUser();
+  const { toast } = useToast();
 
-  const { data: request, isLoading } = useGetCareRequest(id, { 
-    query: { enabled: !!id, queryKey: getGetCareRequestQueryKey(id) } 
+  const [isApplyOpen, setIsApplyOpen] = useState(false);
+  const [applyMessage, setApplyMessage] = useState("");
+
+  const { data: request, isLoading } = useGetCareRequest(id, {
+    query: { enabled: !!id, queryKey: getGetCareRequestQueryKey(id) }
   });
 
-  // Fetch some caregivers in the same category to suggest
-  const { data: suggestedCaregivers } = useListCaregivers({ 
-    category: request?.category?.slug 
-  }, { 
-    query: { enabled: !!request?.category?.slug } 
-  });
+  const { data: suggestedCaregivers } = useListCaregivers(
+    { category: request?.category?.slug },
+    { query: { enabled: !!request?.category?.slug } }
+  );
+
+  const { data: allCaregivers } = useListCaregivers(
+    {},
+    { query: { enabled: !!user } }
+  );
+
+  const myCaregiverProfile = (allCaregivers as any[])?.find(
+    (c: any) => c.clerkId === user?.id
+  );
+
+  const createBooking = useCreateBooking();
+
+  const handleApply = () => {
+    if (!user) {
+      setLocation("/sign-in");
+      return;
+    }
+    if (!myCaregiverProfile) {
+      toast({
+        title: "Caregiver profile required",
+        description: "You must register as a caregiver before applying for jobs.",
+      });
+      setLocation("/become-caregiver");
+      return;
+    }
+    setIsApplyOpen(true);
+  };
+
+  const submitApplication = () => {
+    if (!myCaregiverProfile || !request) return;
+    createBooking.mutate(
+      {
+        data: {
+          caregiverId: myCaregiverProfile.id,
+          careRequestId: request.id,
+          message: applyMessage,
+          seekerClerkId: request.seekerClerkId ?? undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsApplyOpen(false);
+          setApplyMessage("");
+          toast({
+            title: "Application sent!",
+            description: "Your application has been sent. You'll be notified if selected.",
+          });
+        },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.error ?? "Could not send application. Please try again.";
+          toast({ title: "Error", description: msg, variant: "destructive" });
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -47,16 +110,16 @@ export default function CareRequestDetail() {
                 {request.category?.name}
               </Badge>
               <Badge variant="outline" className={
-                request.status === 'open' ? 'border-green-500 text-green-600' : 
-                request.status === 'filled' ? 'border-blue-500 text-blue-600' : 
+                request.status === 'open' ? 'border-green-500 text-green-600' :
+                request.status === 'filled' ? 'border-blue-500 text-blue-600' :
                 'border-gray-500 text-gray-600'
               }>
                 {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
               </Badge>
             </div>
-            
+
             <h1 className="font-serif text-3xl md:text-4xl font-bold mb-6">{request.title}</h1>
-            
+
             <div className="flex flex-wrap gap-6 p-4 bg-muted/30 rounded-xl mb-8">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-background rounded-md shadow-sm">
@@ -127,10 +190,15 @@ export default function CareRequestDetail() {
                   </div>
                 </div>
               )}
-              
+
               <div className="pt-6">
-                <Button className="w-full rounded-full h-12 hover-elevate">
-                  Apply for this job
+                <Button
+                  className="w-full rounded-full h-12 hover-elevate"
+                  onClick={handleApply}
+                  disabled={request.status !== 'open'}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {request.status === 'open' ? 'Apply for this job' : 'Position Filled'}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground mt-3">
                   Only verified caregivers can apply
@@ -146,9 +214,9 @@ export default function CareRequestDetail() {
                 {suggestedCaregivers.slice(0, 3).map(caregiver => (
                   <Link key={caregiver.id} href={`/caregivers/${caregiver.id}`}>
                     <div className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-card hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer group">
-                      <img 
-                        src={caregiver.avatarUrl} 
-                        alt={caregiver.name} 
+                      <img
+                        src={caregiver.avatarUrl ?? undefined}
+                        alt={caregiver.name}
                         className="w-10 h-10 rounded-full object-cover border border-border"
                       />
                       <div className="flex-1 overflow-hidden">
@@ -168,6 +236,39 @@ export default function CareRequestDetail() {
           )}
         </div>
       </div>
+
+      <Dialog open={isApplyOpen} onOpenChange={setIsApplyOpen}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Apply for "{request.title}"</DialogTitle>
+            <DialogDescription>
+              Write a short cover message explaining why you're a great fit for this role. The family will review your profile and reach out if interested.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="text-sm font-medium">Your cover message</label>
+            <Textarea
+              placeholder="Hi, I'm an experienced caregiver with X years of experience in... I'd love to help your family with..."
+              value={applyMessage}
+              onChange={(e) => setApplyMessage(e.target.value)}
+              rows={5}
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Your contact details remain private until the family confirms and pays for your services.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsApplyOpen(false)}>Cancel</Button>
+            <Button
+              onClick={submitApplication}
+              disabled={!applyMessage.trim() || createBooking.isPending}
+            >
+              {createBooking.isPending ? "Sending..." : "Send Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

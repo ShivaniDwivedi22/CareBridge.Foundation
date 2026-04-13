@@ -1,7 +1,7 @@
 import { useCreateCaregiver, useListCategories } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -113,6 +113,7 @@ const formSchema = z.object({
   // Step 1
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(7, "Phone number is required"),
+  avatarUrl: z.string().min(1, "Profile photo is required"),
   categoryIds: z.array(z.number()).min(1, "Select at least one category"),
   // Step 2
   yearsExperience: z.coerce.number().min(0),
@@ -166,7 +167,7 @@ export default function BecomeCaregiver() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "", phone: "", categoryIds: [],
+      name: "", phone: "", avatarUrl: "", categoryIds: [],
       yearsExperience: 1, bio: "", languages: "", pastWorkReferences: "",
       backgroundCheckConsent: false, policeVerification: false, medicalFitnessDeclaration: false,
       certifications: "", medicalNursingLicense: "", foodSafetyCertificate: false, insuranceLicense: "",
@@ -185,6 +186,9 @@ export default function BecomeCaregiver() {
   ];
   const [refEntries, setRefEntries] = useState<RefEntry[]>(EMPTY_REFS);
   const [complianceError, setComplianceError] = useState(false);
+  const [step3Error, setStep3Error] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const serializeRefs = (entries: RefEntry[]) =>
     entries
@@ -211,7 +215,7 @@ export default function BecomeCaregiver() {
   }, [geo.location, form]);
 
   const stepFields: Record<number, (keyof FormValues)[]> = {
-    1: ["name", "phone", "categoryIds"],
+    1: ["name", "phone", "avatarUrl", "categoryIds"],
     2: ["yearsExperience", "bio", "languages", "pastWorkReferences"],
     3: ["backgroundCheckConsent", "policeVerification", "medicalFitnessDeclaration"],
     4: ["certifications", "medicalNursingLicense", "foodSafetyCertificate", "insuranceLicense"],
@@ -227,6 +231,22 @@ export default function BecomeCaregiver() {
   };
 
   const handleNext = async () => {
+    if (currentStep === 3) {
+      const vals = form.getValues();
+      const bgShown = getReqLevel("backgroundCheckConsent", selectedSlugs) !== "N";
+      const pvShown = getReqLevel("policeVerification", selectedSlugs) !== "N";
+      const mfShown = getReqLevel("medicalFitnessDeclaration", selectedSlugs) !== "N";
+      const anyShown = bgShown || pvShown || mfShown;
+      const allTicked =
+        (!bgShown || vals.backgroundCheckConsent) &&
+        (!pvShown || vals.policeVerification) &&
+        (!mfShown || vals.medicalFitnessDeclaration);
+      if (anyShown && !allTicked) {
+        setStep3Error(true);
+        return;
+      }
+      setStep3Error(false);
+    }
     const valid = await validateStep(currentStep);
     if (valid) setCurrentStep((s) => Math.min(s + 1, 7));
   };
@@ -244,8 +264,9 @@ export default function BecomeCaregiver() {
         });
         setLocation(`/caregivers/${result.id}`);
       },
-      onError: () => {
-        toast({ title: "Error", description: "Failed to create profile. Please try again.", variant: "destructive" });
+      onError: (err: any) => {
+        const msg = err?.response?.data?.error ?? "Failed to create profile. Please try again.";
+        toast({ title: "Registration Error", description: msg, variant: "destructive" });
       },
     });
   }
@@ -359,8 +380,81 @@ export default function BecomeCaregiver() {
                           )} />
                         </div>
 
+                        <FormField control={form.control} name="avatarUrl" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Profile Photo <span className="text-red-500">*</span></FormLabel>
+                            <FormDescription>Upload a clear, professional photo of yourself. Max 2 MB.</FormDescription>
+                            <FormControl>
+                              <div className="flex items-start gap-4">
+                                <div
+                                  onClick={() => photoInputRef.current?.click()}
+                                  className="w-24 h-24 rounded-full border-2 border-dashed border-border/60 bg-muted/20 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all shrink-0 overflow-hidden"
+                                >
+                                  {photoPreview ? (
+                                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="text-center">
+                                      <User className="w-8 h-8 text-muted-foreground/40 mx-auto mb-1" />
+                                      <span className="text-[10px] text-muted-foreground">Click to upload</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex flex-col gap-2 pt-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-full"
+                                    onClick={() => photoInputRef.current?.click()}
+                                  >
+                                    {photoPreview ? "Change Photo" : "Upload Photo"}
+                                  </Button>
+                                  {photoPreview && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="rounded-full text-destructive hover:text-destructive text-xs"
+                                      onClick={() => {
+                                        setPhotoPreview("");
+                                        field.onChange("");
+                                        if (photoInputRef.current) photoInputRef.current.value = "";
+                                      }}
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                  <p className="text-xs text-muted-foreground">JPG, PNG or WEBP</p>
+                                </div>
+                              </div>
+                            </FormControl>
+                            <input
+                              ref={photoInputRef}
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast({ title: "File too large", description: "Please choose an image under 2 MB.", variant: "destructive" });
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const dataUrl = ev.target?.result as string;
+                                  setPhotoPreview(dataUrl);
+                                  field.onChange(dataUrl);
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+
                         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300">
-                          A Government ID and Profile Photo will be required during identity verification after registration.
+                          A Government ID will be required during identity verification after registration.
                         </div>
 
                         <div className="space-y-2">
@@ -527,6 +621,13 @@ export default function BecomeCaregiver() {
                         <p className="text-sm text-muted-foreground bg-muted/30 rounded-xl p-4 border border-border/40">
                           Safety checks ensure trust and security for the families you serve. Requirements vary by care category.
                         </p>
+
+                        {step3Error && (
+                          <div className="flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            <span className="font-bold shrink-0">⚠</span>
+                            <span>All required safety checks must be acknowledged before you can proceed.</span>
+                          </div>
+                        )}
                         {getReqLevel("backgroundCheckConsent", selectedSlugs) !== "N" && (
                           <FormField control={form.control} name="backgroundCheckConsent" render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
@@ -555,7 +656,17 @@ export default function BecomeCaregiver() {
                                   Police Verification
                                   <ReqBadge level={getReqLevel("policeVerification", selectedSlugs)} />
                                 </FormLabel>
-                                <FormDescription>I confirm that I will submit or have submitted a police clearance certificate.</FormDescription>
+                                <FormDescription>
+                                  I confirm that I will submit or have submitted a police clearance certificate (PCC).{" "}
+                                  <a
+                                    href="https://www2.policesolutions.ca/checks/services/toronto3/index.php?utm_source=chatgpt.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary underline underline-offset-2 hover:text-primary/80"
+                                  >
+                                    How to obtain a PCC →
+                                  </a>
+                                </FormDescription>
                               </div>
                             </FormItem>
                           )} />

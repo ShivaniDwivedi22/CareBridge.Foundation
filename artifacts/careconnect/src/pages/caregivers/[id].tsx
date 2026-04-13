@@ -139,6 +139,13 @@ export default function CaregiverDetail() {
                 )}
               </h1>
 
+              {caregiver.backgroundCheckConsent && caregiver.policeVerification && caregiver.medicalFitnessDeclaration && (
+                <div className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-2">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Background Checked
+                </div>
+              )}
+
               <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-4">
                 <MapPin className="w-4 h-4" />
                 {caregiver.location}
