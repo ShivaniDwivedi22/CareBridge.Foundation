@@ -68,9 +68,12 @@ catalog:
 autoInstallPeers: false
 
 onlyBuiltDependencies:
+  - '@clerk/shared'
   - '@swc/core'
+  - drizzle-kit
   - esbuild
   - msw
+  - sharp
   - unrs-resolver
 
 overrides:
