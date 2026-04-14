@@ -1,5 +1,4 @@
 import { db, categoriesTable } from "@workspace/db";
-import { count } from "drizzle-orm";
 import { logger } from "./lib/logger";
 
 const CATEGORIES = [
@@ -16,12 +15,10 @@ const CATEGORIES = [
 ];
 
 export async function seedIfEmpty(): Promise<void> {
-  const [{ value: existing }] = await db.select({ value: count() }).from(categoriesTable);
-  if (existing > 0) return;
-
-  logger.info("Seeding categories table...");
-  await db.insert(categoriesTable).values(
-    CATEGORIES.map((c) => ({ ...c, caregiverCount: 0 }))
-  );
-  logger.info({ count: CATEGORIES.length }, "Categories seeded");
+  logger.info("Upserting categories...");
+  await db
+    .insert(categoriesTable)
+    .values(CATEGORIES.map((c) => ({ ...c, caregiverCount: 0 })))
+    .onConflictDoNothing({ target: categoriesTable.slug });
+  logger.info({ count: CATEGORIES.length }, "Categories upserted");
 }

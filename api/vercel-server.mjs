@@ -760,8 +760,8 @@ var require_depd = __commonJS({
       return deprecate;
     }
     function eehaslisteners(emitter, type) {
-      var count2 = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
-      return count2 > 0;
+      var count = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
+      return count > 0;
     }
     function isignored(namespace) {
       if (process.noDeprecation) {
@@ -18331,14 +18331,14 @@ var require_urlencoded = __commonJS({
       };
     }
     function parameterCount(body, limit) {
-      let count2 = 0;
+      let count = 0;
       let index = -1;
       do {
-        count2++;
-        if (count2 > limit) return void 0;
+        count++;
+        if (count > limit) return void 0;
         index = body.indexOf("&", index + 1);
       } while (index !== -1);
-      return count2;
+      return count;
     }
   }
 });
@@ -21537,13 +21537,13 @@ var require_mediaType = __commonJS({
       return spec.q > 0;
     }
     function quoteCount(string4) {
-      var count2 = 0;
+      var count = 0;
       var index = 0;
       while ((index = string4.indexOf('"', index)) !== -1) {
-        count2++;
+        count++;
         index++;
       }
-      return count2;
+      return count;
     }
     function splitKeyValuePair(str) {
       var index = str.indexOf("=");
@@ -22802,8 +22802,8 @@ var require_send = __commonJS({
       }
     }
     function hasListeners(emitter, type) {
-      var count2 = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
-      return count2 > 0;
+      var count = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
+      return count > 0;
     }
     function normalizeList(val, name) {
       var list = [].concat(val || []);
@@ -30419,7 +30419,7 @@ var require_to_regex_range = __commonJS({
       let zipped = zip(start, stop);
       let digits = zipped.length;
       let pattern = "";
-      let count2 = 0;
+      let count = 0;
       for (let i = 0; i < digits; i++) {
         let [startDigit, stopDigit] = zipped[i];
         if (startDigit === stopDigit) {
@@ -30427,13 +30427,13 @@ var require_to_regex_range = __commonJS({
         } else if (startDigit !== "0" || stopDigit !== "9") {
           pattern += toCharacterClass(startDigit, stopDigit, options);
         } else {
-          count2++;
+          count++;
         }
       }
-      if (count2) {
+      if (count) {
         pattern += options.shorthand === true ? "\\d" : "[0-9]";
       }
-      return { pattern, count: [count2], digits };
+      return { pattern, count: [count], digits };
     }
     function splitToPatterns(min, max, tok, options) {
       let ranges = splitToRanges(min, max);
@@ -31969,13 +31969,13 @@ var require_parse3 = __commonJS({
         consume(token.value);
       };
       const negate = () => {
-        let count2 = 1;
+        let count = 1;
         while (peek() === "!" && (peek(2) !== "(" || peek(3) === "?")) {
           advance();
           state.start++;
-          count2++;
+          count++;
         }
-        if (count2 % 2 === 0) {
+        if (count % 2 === 0) {
           return false;
         }
         state.negated = true;
@@ -34400,11 +34400,11 @@ var require_binaryParsers = __commonJS({
         var array2 = [];
         var i2;
         if (dimension.length > 1) {
-          var count2 = dimension.shift();
-          for (i2 = 0; i2 < count2; i2++) {
+          var count = dimension.shift();
+          for (i2 = 0; i2 < count; i2++) {
             array2[i2] = parse4(dimension, elementType2);
           }
-          dimension.unshift(count2);
+          dimension.unshift(count);
         } else {
           for (i2 = 0; i2 < dimension[0]; i2++) {
             array2[i2] = parseElement(elementType2);
@@ -54713,11 +54713,6 @@ function mapRelationalRow(tablesConfig, tableConfig, row, buildQueryResultSelect
   return result;
 }
 
-// ../../node_modules/.pnpm/drizzle-orm@0.45.1_@types+pg@8.18.0_pg@8.20.0/node_modules/drizzle-orm/sql/functions/aggregate.js
-function count(expression) {
-  return sql`count(${expression || sql.raw("*")})`.mapWith(Number);
-}
-
 // ../../node_modules/.pnpm/drizzle-orm@0.45.1_@types+pg@8.18.0_pg@8.20.0/node_modules/drizzle-orm/pg-core/view-base.js
 var PgViewBase = class extends View {
   static [entityKind] = "PgViewBase";
@@ -62114,8 +62109,8 @@ function az_default() {
 }
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/be.js
-function getBelarusianPlural(count2, one, few, many) {
-  const absCount = Math.abs(count2);
+function getBelarusianPlural(count, one, few, many) {
+  const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
   if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
@@ -65260,8 +65255,8 @@ function pt_default() {
 }
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/ru.js
-function getRussianPlural(count2, one, few, many) {
-  const absCount = Math.abs(count2);
+function getRussianPlural(count, one, few, many) {
+  const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
   if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
@@ -87689,13 +87684,9 @@ var CATEGORIES = [
   { name: "Travel & Medical Care", slug: "travel-medical-care", icon: "\u2708\uFE0F", description: "Care during travel and medical assistance services." }
 ];
 async function seedIfEmpty() {
-  const [{ value: existing }] = await db.select({ value: count() }).from(categoriesTable);
-  if (existing > 0) return;
-  logger.info("Seeding categories table...");
-  await db.insert(categoriesTable).values(
-    CATEGORIES.map((c) => ({ ...c, caregiverCount: 0 }))
-  );
-  logger.info({ count: CATEGORIES.length }, "Categories seeded");
+  logger.info("Upserting categories...");
+  await db.insert(categoriesTable).values(CATEGORIES.map((c) => ({ ...c, caregiverCount: 0 }))).onConflictDoNothing({ target: categoriesTable.slug });
+  logger.info({ count: CATEGORIES.length }, "Categories upserted");
 }
 
 // src/vercel-server.ts
