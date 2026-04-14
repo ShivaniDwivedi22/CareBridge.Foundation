@@ -760,8 +760,8 @@ var require_depd = __commonJS({
       return deprecate;
     }
     function eehaslisteners(emitter, type) {
-      var count = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
-      return count > 0;
+      var count2 = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
+      return count2 > 0;
     }
     function isignored(namespace) {
       if (process.noDeprecation) {
@@ -18331,14 +18331,14 @@ var require_urlencoded = __commonJS({
       };
     }
     function parameterCount(body, limit) {
-      let count = 0;
+      let count2 = 0;
       let index = -1;
       do {
-        count++;
-        if (count > limit) return void 0;
+        count2++;
+        if (count2 > limit) return void 0;
         index = body.indexOf("&", index + 1);
       } while (index !== -1);
-      return count;
+      return count2;
     }
   }
 });
@@ -20431,7 +20431,7 @@ var require_route = __commonJS({
         sync = 0;
       }
     };
-    Route.prototype.all = function all(handler) {
+    Route.prototype.all = function all(handler2) {
       const callbacks = flatten.call(slice.call(arguments), Infinity);
       if (callbacks.length === 0) {
         throw new TypeError("argument handler is required");
@@ -20449,7 +20449,7 @@ var require_route = __commonJS({
       return this;
     };
     methods.forEach(function(method) {
-      Route.prototype[method] = function(handler) {
+      Route.prototype[method] = function(handler2) {
         const callbacks = flatten.call(slice.call(arguments), Infinity);
         if (callbacks.length === 0) {
           throw new TypeError("argument handler is required");
@@ -20652,17 +20652,17 @@ var require_router = __commonJS({
         }
       }
     };
-    Router12.prototype.use = function use(handler) {
+    Router12.prototype.use = function use(handler2) {
       let offset = 0;
       let path = "/";
-      if (typeof handler !== "function") {
-        let arg = handler;
+      if (typeof handler2 !== "function") {
+        let arg = handler2;
         while (Array.isArray(arg) && arg.length !== 0) {
           arg = arg[0];
         }
         if (typeof arg !== "function") {
           offset = 1;
-          path = handler;
+          path = handler2;
         }
       }
       const callbacks = flatten.call(slice.call(arguments, offset), Infinity);
@@ -21537,13 +21537,13 @@ var require_mediaType = __commonJS({
       return spec.q > 0;
     }
     function quoteCount(string4) {
-      var count = 0;
+      var count2 = 0;
       var index = 0;
       while ((index = string4.indexOf('"', index)) !== -1) {
-        count++;
+        count2++;
         index++;
       }
-      return count;
+      return count2;
     }
     function splitKeyValuePair(str) {
       var index = str.indexOf("=");
@@ -22802,8 +22802,8 @@ var require_send = __commonJS({
       }
     }
     function hasListeners(emitter, type) {
-      var count = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
-      return count > 0;
+      var count2 = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
+      return count2 > 0;
     }
     function normalizeList(val, name) {
       var list = [].concat(val || []);
@@ -29989,9 +29989,9 @@ var require_proxy_events = __commonJS({
     var function_1 = require_function();
     var debug = debug_1.Debug.extend("proxy-events-plugin");
     var proxyEventsPlugin = (proxyServer, options) => {
-      Object.entries(options.on || {}).forEach(([eventName, handler]) => {
-        debug(`register event handler: "${eventName}" -> "${(0, function_1.getFunctionName)(handler)}"`);
-        proxyServer.on(eventName, handler);
+      Object.entries(options.on || {}).forEach(([eventName, handler2]) => {
+        debug(`register event handler: "${eventName}" -> "${(0, function_1.getFunctionName)(handler2)}"`);
+        proxyServer.on(eventName, handler2);
       });
     };
     exports.proxyEventsPlugin = proxyEventsPlugin;
@@ -30419,7 +30419,7 @@ var require_to_regex_range = __commonJS({
       let zipped = zip(start, stop);
       let digits = zipped.length;
       let pattern = "";
-      let count = 0;
+      let count2 = 0;
       for (let i = 0; i < digits; i++) {
         let [startDigit, stopDigit] = zipped[i];
         if (startDigit === stopDigit) {
@@ -30427,13 +30427,13 @@ var require_to_regex_range = __commonJS({
         } else if (startDigit !== "0" || stopDigit !== "9") {
           pattern += toCharacterClass(startDigit, stopDigit, options);
         } else {
-          count++;
+          count2++;
         }
       }
-      if (count) {
+      if (count2) {
         pattern += options.shorthand === true ? "\\d" : "[0-9]";
       }
-      return { pattern, count: [count], digits };
+      return { pattern, count: [count2], digits };
     }
     function splitToPatterns(min, max, tok, options) {
       let ranges = splitToRanges(min, max);
@@ -31969,13 +31969,13 @@ var require_parse3 = __commonJS({
         consume(token.value);
       };
       const negate = () => {
-        let count = 1;
+        let count2 = 1;
         while (peek() === "!" && (peek(2) !== "(" || peek(3) === "?")) {
           advance();
           state.start++;
-          count++;
+          count2++;
         }
-        if (count % 2 === 0) {
+        if (count2 % 2 === 0) {
           return false;
         }
         state.negated = true;
@@ -34400,11 +34400,11 @@ var require_binaryParsers = __commonJS({
         var array2 = [];
         var i2;
         if (dimension.length > 1) {
-          var count = dimension.shift();
-          for (i2 = 0; i2 < count; i2++) {
+          var count2 = dimension.shift();
+          for (i2 = 0; i2 < count2; i2++) {
             array2[i2] = parse4(dimension, elementType2);
           }
-          dimension.unshift(count);
+          dimension.unshift(count2);
         } else {
           for (i2 = 0; i2 < dimension[0]; i2++) {
             array2[i2] = parseElement(elementType2);
@@ -50660,7 +50660,9 @@ var ListCaregiversResponse = arrayType(ListCaregiversResponseItem);
 var CreateCaregiverBody = objectType({
   name: stringType(),
   bio: stringType(),
+  avatarUrl: stringType().optional(),
   location: stringType(),
+  clerkId: stringType().optional(),
   categoryIds: arrayType(numberType()),
   hourlyRate: numberType(),
   yearsExperience: numberType(),
@@ -54709,6 +54711,11 @@ function mapRelationalRow(tablesConfig, tableConfig, row, buildQueryResultSelect
     }
   }
   return result;
+}
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.1_@types+pg@8.18.0_pg@8.20.0/node_modules/drizzle-orm/sql/functions/aggregate.js
+function count(expression) {
+  return sql`count(${expression || sql.raw("*")})`.mapWith(Number);
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.1_@types+pg@8.18.0_pg@8.20.0/node_modules/drizzle-orm/pg-core/view-base.js
@@ -62107,8 +62114,8 @@ function az_default() {
 }
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/be.js
-function getBelarusianPlural(count, one, few, many) {
-  const absCount = Math.abs(count);
+function getBelarusianPlural(count2, one, few, many) {
+  const absCount = Math.abs(count2);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
   if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
@@ -65253,8 +65260,8 @@ function pt_default() {
 }
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/ru.js
-function getRussianPlural(count, one, few, many) {
-  const absCount = Math.abs(count);
+function getRussianPlural(count2, one, few, many) {
+  const absCount = Math.abs(count2);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
   if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
@@ -87668,10 +87675,46 @@ app.use(clerkMiddleware());
 app.use("/api", routes_default);
 var app_default = app;
 
+// src/seed.ts
+var CATEGORIES = [
+  { name: "Pet Care", slug: "pet-care", icon: "PawPrint", description: "Professional care for your beloved pets including dog walking, pet sitting, and grooming." },
+  { name: "Newborn Care", slug: "newborn-care", icon: "Baby", description: "Expert care for newborns and infants to give parents peace of mind." },
+  { name: "Postpartum Care", slug: "postpartum-care", icon: "Heart", description: "Compassionate support for mothers during the postpartum recovery period." },
+  { name: "Elderly Care", slug: "elderly-care", icon: "UserCheck", description: "Respectful and attentive care for senior family members in their own home." },
+  { name: "Special Needs Care", slug: "special-needs-care", icon: "HandHeart", description: "Specialized care and support for individuals with disabilities and special needs." },
+  { name: "Child Care", slug: "child-care", icon: "Users", description: "Safe, nurturing childcare for toddlers and school-age children." },
+  { name: "House Help", slug: "house-help", icon: "\u{1F3E0}", description: "Domestic and household assistance services." },
+  { name: "Kitchen & Food Help", slug: "kitchen-food-help", icon: "\u{1F37D}\uFE0F", description: "Cooking, meal prep, and food safety services." },
+  { name: "Event Support", slug: "event-support", icon: "\u{1F389}", description: "Professional support for events and gatherings." },
+  { name: "Travel & Medical Care", slug: "travel-medical-care", icon: "\u2708\uFE0F", description: "Care during travel and medical assistance services." }
+];
+async function seedIfEmpty() {
+  const [{ value: existing }] = await db.select({ value: count() }).from(categoriesTable);
+  if (existing > 0) return;
+  logger.info("Seeding categories table...");
+  await db.insert(categoriesTable).values(
+    CATEGORIES.map((c) => ({ ...c, caregiverCount: 0 }))
+  );
+  logger.info({ count: CATEGORIES.length }, "Categories seeded");
+}
+
 // src/vercel-server.ts
-var vercel_server_default = app_default;
+var seedPromise = null;
+function ensureSeeded() {
+  if (!seedPromise) {
+    seedPromise = seedIfEmpty().catch((err) => {
+      logger.error({ err }, "Failed to seed database on Vercel cold start");
+      seedPromise = null;
+    });
+  }
+  return seedPromise;
+}
+async function handler(req, res) {
+  await ensureSeeded();
+  app_default(req, res);
+}
 export {
-  vercel_server_default as default
+  handler as default
 };
 /*! Bundled license information:
 

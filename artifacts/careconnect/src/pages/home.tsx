@@ -367,7 +367,7 @@ export default function Home() {
                     <CardHeader className="pb-4">
                       <div className="flex justify-between items-start mb-4">
                         <Avatar className="w-16 h-16 border-2 border-background shadow-sm">
-                          <AvatarImage src={caregiver.avatarUrl} alt={caregiver.name} className="object-cover" />
+                          <AvatarImage src={caregiver.avatarUrl ?? undefined} alt={caregiver.name} className="object-cover" />
                           <AvatarFallback className="text-lg bg-primary/10 text-primary">
                             {caregiver.name.charAt(0)}
                           </AvatarFallback>

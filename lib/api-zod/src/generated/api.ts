@@ -88,7 +88,9 @@ export const ListCaregiversResponse = zod.array(ListCaregiversResponseItem);
 export const CreateCaregiverBody = zod.object({
   name: zod.string(),
   bio: zod.string(),
+  avatarUrl: zod.string().optional(),
   location: zod.string(),
+  clerkId: zod.string().optional(),
   categoryIds: zod.array(zod.number()),
   hourlyRate: zod.number(),
   yearsExperience: zod.number(),

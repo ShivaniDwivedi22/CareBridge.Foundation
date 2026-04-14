@@ -31,6 +31,7 @@ export interface Caregiver {
   reviewCount: number;
   yearsExperience: number;
   isVerified: boolean;
+  clerkId?: string | null;
   certifications?: string | null;
   languages?: string | null;
   services?: string | null;
@@ -55,7 +56,9 @@ export interface Caregiver {
 export interface CreateCaregiverBody {
   name: string;
   bio: string;
+  avatarUrl?: string;
   location: string;
+  clerkId?: string;
   categoryIds: number[];
   hourlyRate: number;
   yearsExperience: number;
@@ -98,6 +101,7 @@ export interface CareRequest {
   startDate: string;
   endDate?: string | null;
   budget: number;
+  durationHours?: number | null;
   status: CareRequestStatus;
   seekerName: string;
   seekerClerkId?: string | null;

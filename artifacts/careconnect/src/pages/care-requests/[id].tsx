@@ -1,4 +1,4 @@
-import { useGetCareRequest, getGetCareRequestQueryKey, useListCaregivers, useCreateBooking } from "@workspace/api-client-react";
+import { useGetCareRequest, getGetCareRequestQueryKey, useListCaregivers, getListCaregiversQueryKey, useCreateBooking } from "@workspace/api-client-react";
 import { useParams, Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useUser } from "@clerk/react";
@@ -27,12 +27,12 @@ export default function CareRequestDetail() {
 
   const { data: suggestedCaregivers } = useListCaregivers(
     { category: request?.category?.slug },
-    { query: { enabled: !!request?.category?.slug } }
+    { query: { enabled: !!request?.category?.slug, queryKey: getListCaregiversQueryKey({ category: request?.category?.slug }) } }
   );
 
   const { data: allCaregivers } = useListCaregivers(
     {},
-    { query: { enabled: !!user } }
+    { query: { enabled: !!user, queryKey: getListCaregiversQueryKey({}) } }
   );
 
   const myCaregiverProfile = (allCaregivers as any[])?.find(

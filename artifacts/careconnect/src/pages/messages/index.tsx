@@ -1,4 +1,4 @@
-import { useListConversations } from "@workspace/api-client-react";
+import { useListConversations, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,10 +13,10 @@ export default function MessagesPage() {
 
   const { data: conversations, isLoading } = useListConversations(
     { clerkUserId },
-    { query: { enabled: !!clerkUserId } }
+    { query: { enabled: !!clerkUserId, queryKey: getListConversationsQueryKey({ clerkUserId }) } }
   );
 
-  const getOtherParticipant = (convo: typeof conversations[0]) => {
+  const getOtherParticipant = (convo: NonNullable<typeof conversations>[number]) => {
     if (!user) return { name: "Unknown", clerkId: "" };
     if (convo.participantAClerkId === clerkUserId) {
       return { name: convo.participantBName, clerkId: convo.participantBClerkId };

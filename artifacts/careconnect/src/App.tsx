@@ -33,8 +33,6 @@ function stripBase(path: string): string {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
 }
 
-if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
-
 function SignInPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -120,6 +118,22 @@ function Router() {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
+
+  if (!clerkPubKey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-8">
+        <div className="max-w-md text-center space-y-4">
+          <h1 className="text-2xl font-bold text-destructive">Configuration Error</h1>
+          <p className="text-muted-foreground">
+            The <code className="bg-muted px-1 rounded">VITE_CLERK_PUBLISHABLE_KEY</code> environment
+            variable is not set. Please add it in your Vercel project settings under{" "}
+            <strong>Settings → Environment Variables</strong> and redeploy.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
