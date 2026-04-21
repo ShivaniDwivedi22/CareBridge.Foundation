@@ -46,9 +46,16 @@ export default defineConfig({
   root: path.resolve(process.cwd()),
   build: {
     // Vercel expects static output directly under /dist
-    outDir: path.resolve(process.cwd(), "dist"),
+    outDir: "dist/public",
     emptyOutDir: true,
-    chunkSizeWarningLimit: 4000,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+    output: {
+      manualChunks: {
+        vendor: ["react", "react-dom"], 
+      },
+    },
+  },
   },
   server: {
     port,
