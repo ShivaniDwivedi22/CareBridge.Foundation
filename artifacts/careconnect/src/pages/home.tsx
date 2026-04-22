@@ -278,8 +278,13 @@ export default function Home() {
                           <div className="absolute inset-0 bg-primary/10 group-hover:bg-primary/5 transition-colors" />
                         </div>
                         <div className="px-3 py-3 bg-card border-t border-border/30">
-                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors">{category.name}</h3>
-                          <p className="text-muted-foreground text-xs mt-0.5">{category.caregiverCount} professionals</p>
+                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors">
+                            {category.name}
+                          </h3>
+                          {/* safe fallback if caregiverCount is undefined */}
+                          <p className="text-muted-foreground text-xs mt-0.5">
+                            {category.caregiverCount ?? 0} professionals
+                          </p>
                         </div>
                       </div>
                     </Link>
