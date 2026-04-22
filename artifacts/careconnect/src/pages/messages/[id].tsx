@@ -1,5 +1,5 @@
 import { useListMessages, useSendMessage, getListMessagesQueryKey } from "@workspace/api-client-react";
-import { useUser } from "@clerk/react";
+import { useUser } from "@clerk/clerk-react";
 import { useParams, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
