@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from '@clerk/react';
+import { ClerkProvider, SignIn, SignUp, SignedIn, SignedOut, useClerk } from '@clerk/react';
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -66,11 +66,12 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+//  use SignedIn/SignedOut instead of broken Show component
 function Protected({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
-      <Show when="signed-in"><Component /></Show>
-      <Show when="signed-out"><Redirect to="/sign-in" /></Show>
+      <SignedIn><Component /></SignedIn>
+      <SignedOut><Redirect to="/sign-in" /></SignedOut>
     </>
   );
 }
