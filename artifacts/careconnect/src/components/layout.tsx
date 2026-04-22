@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { HeartHandshake, Menu, X, UserCircle, Briefcase, LayoutDashboard, MessageCircle, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Show, useUser, useClerk } from "@clerk/react";
+import { Show, useUser, useClerk } from "@clerk/clerk-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function UserProfileDropdown() {
