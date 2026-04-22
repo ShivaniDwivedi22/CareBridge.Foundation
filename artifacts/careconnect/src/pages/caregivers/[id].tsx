@@ -8,16 +8,23 @@ import {
 } from "@workspace/api-client-react";
 import { useParams, Link, useLocation } from "wouter";
 import { useState } from "react";
-import { useUser, Show } from "@clerk/react";
+// ✅ Fix: removed broken Show import, added SignedIn/SignedOut
+import { useUser, SignedIn, SignedOut } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Star, MapPin, ShieldCheck, Clock, Award, ChevronLeft, Calendar, Languages, Briefcase, Lock } from "lucide-react";
+import {
+  Star, MapPin, ShieldCheck, Clock, Award, ChevronLeft,
+  Calendar, Languages, Briefcase, Lock,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -37,7 +44,7 @@ export default function CaregiverDetail() {
   const [reviewerName, setReviewerName] = useState("");
 
   const { data: caregiver, isLoading } = useGetCaregiver(id, {
-    query: { enabled: !!id, queryKey: getGetCaregiverQueryKey(id) }
+    query: { enabled: !!id, queryKey: getGetCaregiverQueryKey(id) },
   });
 
   const { data: reviews } = useListReviews(
@@ -48,6 +55,9 @@ export default function CaregiverDetail() {
   const createBooking = useCreateBooking();
   const createReview = useCreateReview();
 
+  // ✅ Issue 9: derive self-review flag here so it's used consistently
+  const isSelf = !!(user?.id && caregiver?.clerkId && user.id === caregiver.clerkId);
+
   const handleBook = () => {
     createBooking.mutate({
       data: {
@@ -55,7 +65,7 @@ export default function CaregiverDetail() {
         careRequestId: 1,
         message,
         seekerClerkId: user?.id,
-      }
+      },
     }, {
       onSuccess: () => {
         setIsBookingOpen(false);
@@ -64,11 +74,21 @@ export default function CaregiverDetail() {
           description: `Your request has been sent to ${caregiver?.name}. They will respond shortly.`,
         });
         setLocation("/dashboard");
-      }
+      },
     });
   };
 
   const handleReview = () => {
+    // ✅ Issue 9: double-check self-review client-side before submitting
+    if (isSelf) {
+      toast({
+        title: "Not allowed",
+        description: "You cannot review your own profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createReview.mutate({
       data: {
         caregiverId: id,
@@ -78,7 +98,7 @@ export default function CaregiverDetail() {
           ? (user.firstName ?? user.emailAddresses[0]?.emailAddress ?? reviewerName)
           : reviewerName,
         reviewerClerkId: user?.id,
-      }
+      },
     }, {
       onSuccess: () => {
         setIsReviewOpen(false);
@@ -88,8 +108,10 @@ export default function CaregiverDetail() {
           title: "Review Submitted",
           description: "Your review has been submitted and will be visible after moderation.",
         });
-        queryClient.invalidateQueries({ queryKey: getListReviewsQueryKey({ caregiverId: id, status: "approved" }) });
-      }
+        queryClient.invalidateQueries({
+          queryKey: getListReviewsQueryKey({ caregiverId: id, status: "approved" }),
+        });
+      },
     });
   };
 
@@ -120,10 +142,11 @@ export default function CaregiverDetail() {
       </Link>
 
       <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-        {/* Left Column: Profile Card */}
+
+        {/* ── Left Column: Profile Card ─────────────────────────────────── */}
         <div className="md:col-span-1">
           <Card className="sticky top-24 border-border/50 shadow-lg overflow-hidden">
-            <div className="h-24 bg-primary/10"></div>
+            <div className="h-24 bg-primary/10" />
             <div className="px-6 pt-0 pb-6 text-center">
               <Avatar className="w-32 h-32 border-4 border-background shadow-md mx-auto -mt-16 mb-4">
                 <AvatarImage src={caregiver.avatarUrl ?? undefined} alt={caregiver.name} className="object-cover" />
@@ -134,9 +157,7 @@ export default function CaregiverDetail() {
 
               <h1 className="text-2xl font-serif font-bold flex items-center justify-center gap-2 mb-1">
                 {caregiver.name}
-                {caregiver.isVerified && (
-                  <ShieldCheck className="w-5 h-5 text-green-500" />
-                )}
+                {caregiver.isVerified && <ShieldCheck className="w-5 h-5 text-green-500" />}
               </h1>
 
               {caregiver.backgroundCheckConsent && caregiver.policeVerification && caregiver.medicalFitnessDeclaration && (
@@ -159,12 +180,12 @@ export default function CaregiverDetail() {
                   </div>
                   <div className="text-xs text-muted-foreground">{caregiver.reviewCount} reviews</div>
                 </div>
-                <div className="w-px h-8 bg-border"></div>
+                <div className="w-px h-8 bg-border" />
                 <div className="text-center">
                   <div className="font-bold mb-1">${caregiver.hourlyRate}</div>
                   <div className="text-xs text-muted-foreground">per hour</div>
                 </div>
-                <div className="w-px h-8 bg-border"></div>
+                <div className="w-px h-8 bg-border" />
                 <div className="text-center">
                   <div className="font-bold mb-1">{caregiver.yearsExperience}y</div>
                   <div className="text-xs text-muted-foreground">experience</div>
@@ -172,19 +193,28 @@ export default function CaregiverDetail() {
               </div>
 
               <div className="space-y-3">
+                {/* ✅ Fix: replaced Show with SignedIn/SignedOut */}
                 <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-                  <Show when="signed-in">
-                    <DialogTrigger asChild>
-                      <Button className="w-full rounded-full h-12 text-lg shadow-sm hover-elevate">
-                        Book Now
+                  <SignedIn>
+                    {/* ✅ Issue 9: prevent caregiver from booking themselves */}
+                    {isSelf ? (
+                      <Button className="w-full rounded-full h-12 text-lg" disabled>
+                        This is your profile
                       </Button>
-                    </DialogTrigger>
-                  </Show>
-                  <Show when="signed-out">
+                    ) : (
+                      <DialogTrigger asChild>
+                        <Button className="w-full rounded-full h-12 text-lg shadow-sm">
+                          Book Now
+                        </Button>
+                      </DialogTrigger>
+                    )}
+                  </SignedIn>
+                  <SignedOut>
                     <Button className="w-full rounded-full h-12 text-lg shadow-sm" asChild>
                       <Link href="/sign-in">Book Now</Link>
                     </Button>
-                  </Show>
+                  </SignedOut>
+
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Book {caregiver.name}</DialogTitle>
@@ -222,7 +252,6 @@ export default function CaregiverDetail() {
                 Usually responds within 24 hours
               </p>
 
-              {/* Trust signals */}
               <div className="mt-5 pt-5 border-t border-border/40 space-y-2.5">
                 <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
@@ -241,8 +270,9 @@ export default function CaregiverDetail() {
           </Card>
         </div>
 
-        {/* Right Column: Details */}
+        {/* ── Right Column: Details ─────────────────────────────────────── */}
         <div className="md:col-span-2 space-y-8">
+
           <section>
             <h2 className="font-serif text-2xl font-bold mb-4">About Me</h2>
             <div className="prose prose-gray dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
@@ -366,80 +396,82 @@ export default function CaregiverDetail() {
             </div>
           </section>
 
-          {/* Reviews section */}
+          {/* ── Reviews ──────────────────────────────────────────────────── */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-2xl font-bold">Reviews</h2>
-              {user && caregiver.clerkId && user.id === caregiver.clerkId ? (
+
+              {/* ✅ Issue 9: three-way render — self / signed-in / signed-out */}
+              {isSelf ? (
                 <span className="text-xs text-muted-foreground italic border border-border/50 rounded-full px-3 py-1.5">
                   You cannot review your own profile
                 </span>
               ) : (
-              <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-full">
-                    Write a Review
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Review {caregiver.name}</DialogTitle>
-                    <DialogDescription>
-                      Share your experience to help other families make informed decisions.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <Show when="signed-out">
+                <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="rounded-full">
+                      Write a Review
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Review {caregiver.name}</DialogTitle>
+                      <DialogDescription>
+                        Share your experience to help other families make informed decisions.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-4">
+                      {/* ✅ Fix: replaced Show with SignedOut */}
+                      <SignedOut>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Your Name</label>
+                          <Input
+                            placeholder="Enter your name"
+                            value={reviewerName}
+                            onChange={(e) => setReviewerName(e.target.value)}
+                          />
+                        </div>
+                      </SignedOut>
+
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Your Name</label>
-                        <Input
-                          placeholder="Enter your name"
-                          value={reviewerName}
-                          onChange={(e) => setReviewerName(e.target.value)}
-                        />
-                      </div>
-                    </Show>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Rating</label>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => setReviewRating(star)}
-                            className="p-1"
-                          >
-                            <Star
-                              className={`w-7 h-7 transition-colors ${
+                        <label className="text-sm font-medium">Rating</label>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button key={star} onClick={() => setReviewRating(star)} className="p-1">
+                              <Star className={`w-7 h-7 transition-colors ${
                                 star <= reviewRating
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-muted-foreground/30"
-                              }`}
-                            />
-                          </button>
-                        ))}
+                              }`} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Your Review</label>
+                        <Textarea
+                          placeholder="Share your experience working with this caregiver..."
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          rows={4}
+                        />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Your Review</label>
-                      <Textarea
-                        placeholder="Share your experience working with this caregiver..."
-                        value={reviewComment}
-                        onChange={(e) => setReviewComment(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsReviewOpen(false)}>Cancel</Button>
-                    <Button
-                      onClick={handleReview}
-                      disabled={createReview.isPending || !reviewComment.trim()}
-                    >
-                      {createReview.isPending ? "Submitting..." : "Submit Review"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsReviewOpen(false)}>Cancel</Button>
+                      <Button
+                        onClick={handleReview}
+                        disabled={createReview.isPending || !reviewComment.trim()}
+                      >
+                        {createReview.isPending ? "Submitting..." : "Submit Review"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
 
@@ -465,7 +497,11 @@ export default function CaregiverDetail() {
                           <div className="font-semibold text-sm">{review.reviewerName}</div>
                           <div className="flex gap-0.5">
                             {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/20"}`} />
+                              <Star key={i} className={`w-3.5 h-3.5 ${
+                                i < review.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground/20"
+                              }`} />
                             ))}
                           </div>
                         </div>
@@ -480,6 +516,7 @@ export default function CaregiverDetail() {
               </div>
             )}
           </section>
+
         </div>
       </div>
     </div>
