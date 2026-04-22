@@ -9,7 +9,8 @@ import {
 import { useParams, Link, useLocation } from "wouter";
 import { useState } from "react";
 // ✅ Fix: removed broken Show import, added SignedIn/SignedOut
-import { useUser, SignedIn, SignedOut } from "@clerk/react";
+import { useUser } from "@clerk/react";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
