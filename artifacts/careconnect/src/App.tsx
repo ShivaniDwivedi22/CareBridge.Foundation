@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, SignedIn, SignedOut, useClerk } from '@clerk/react';
+import { ClerkProvider, SignIn, SignUp, useClerk } from '@clerk/react';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
