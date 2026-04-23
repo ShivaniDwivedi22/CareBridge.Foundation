@@ -8,7 +8,8 @@ import {
 } from "@workspace/api-client-react";
 import { useParams, Link, useLocation } from "wouter";
 import { useState } from "react";
-import { useUser, SignedIn, SignedOut } from "@clerk/react";
+// import { useUser, SignedIn, SignedOut } from "@clerk/react";
+import { SignedIn, SignedOut } from "@/components/clerk-helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
