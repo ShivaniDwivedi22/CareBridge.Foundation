@@ -5,7 +5,6 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 // ---- custom plugins ----
-// Fix for "use client" sourcemap errors in shadcn components
 function removeUseClient() {
   return {
     name: 'remove-use-client',
@@ -13,7 +12,7 @@ function removeUseClient() {
       if (id.endsWith('.tsx') || id.endsWith('.ts')) {
         return {
           code: code.replace(/['"]use client['"];\s*/g, ''),
-          map: null // Resets the map for this transformation to avoid mismatch
+          map: null 
         };
       }
     },
@@ -24,11 +23,9 @@ function removeUseClient() {
 const port = Number(process.env.PORT || 5173);
 const basePath = process.env.BASE_PATH ?? "/";
 
-// ---- build plugin list ----
-// Added removeUseClient() to the plugin chain
 const plugins = [removeUseClient(), react(), tailwindcss(), runtimeErrorOverlay()];
 
-// Replit‑only dev helpers (ignored on Vercel)
+// Replit‑only dev helpers
 if (process.env.NODE_ENV !== "production" && process.env.REPL_ID) {
   try {
     const { cartographer } = await import("@replit/vite-plugin-cartographer");
@@ -65,21 +62,16 @@ export default defineConfig({
   },
   root: path.resolve(process.cwd()),
   build: {
-    // Vercel expects static output directly under /dist
     outDir: "dist/public",
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      // Suppress noisy warnings about module-level directives
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
         warn(warning);
       },
       output: {
-        manualChunks: undefined
-        
-          //vendor: ["react", "react-dom","wouter", "@clerk/react"], 
-        },
+        manualChunks: undefined,
       },
     },
   },
