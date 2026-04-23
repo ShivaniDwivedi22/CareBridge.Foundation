@@ -147,7 +147,6 @@ function ClerkProviderWithRoutes() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      //<QueryClientProvider client={queryClient}>//
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
           <Router />
