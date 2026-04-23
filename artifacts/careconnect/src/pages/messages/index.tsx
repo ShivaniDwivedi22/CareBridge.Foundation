@@ -1,5 +1,5 @@
 import { useListConversations, getListConversationsQueryKey } from "@workspace/api-client-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
