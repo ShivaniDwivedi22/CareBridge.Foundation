@@ -1,5 +1,5 @@
 import { useCreateCaregiver, useListCategories } from "@workspace/api-client-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
