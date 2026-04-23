@@ -49,7 +49,10 @@ export default defineConfig({
   base: basePath,
   define: {
     "import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY": JSON.stringify(
-      process.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || ""
+    process.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
+  ),
+  "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
+    process.env.VITE_CLERK_PUBLISHABLE_KEY || ""
     ),
   },
   plugins,
