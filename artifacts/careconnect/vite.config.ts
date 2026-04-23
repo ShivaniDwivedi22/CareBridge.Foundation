@@ -74,7 +74,7 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"], 
+          vendor: ["react", "react-dom","@clerk/clerk-react"], 
         },
       },
     },
