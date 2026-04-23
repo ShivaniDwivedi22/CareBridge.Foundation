@@ -1,7 +1,7 @@
 import { useGetCareRequest, getGetCareRequestQueryKey, useListCaregivers, getListCaregiversQueryKey, useCreateBooking } from "@workspace/api-client-react";
 import { useParams, Link, useLocation } from "wouter";
 import { useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
