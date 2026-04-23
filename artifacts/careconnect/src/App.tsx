@@ -123,7 +123,8 @@ function Router() {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
-
+  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  
   if (!clerkPubKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-8">
