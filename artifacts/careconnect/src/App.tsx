@@ -23,12 +23,14 @@ import CheckoutPage from "@/pages/payments/checkout";
 import PaymentHistory from "@/pages/payments/history";
 import PaymentSuccess from "@/pages/payments/success";
 import CancelBooking from "@/pages/bookings/cancel";
+import { loadStripe } from "@stripe/stripe-js";
 
 const queryClient = new QueryClient();
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
