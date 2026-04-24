@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, useClerk, SignIn, SignUp } from "@clerk/react"; 
+import { ClerkProvider, useClerk, useAuth, SignIn, SignUp } from "@clerk/react";
 import { SignedIn, SignedOut } from "@/components/clerk-helpers";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { loadStripe } from "@stripe/stripe-js";
 import NotFound from "@/pages/not-found";
 
 import { Layout } from "@/components/layout";
@@ -25,23 +24,21 @@ import PaymentHistory from "@/pages/payments/history";
 import PaymentSuccess from "@/pages/payments/success";
 import CancelBooking from "@/pages/bookings/cancel";
 
-// Initialize QueryClient outside of the component to prevent recreation on re-renders
+// ✅ QueryClient created once at module level — outside any component
 const queryClient = new QueryClient();
-
-// Initialize Stripe outside of the component
-// This pulls from the variable we mapped in vite.config.ts
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
 }
 
 function SignInPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
 }
@@ -49,36 +46,35 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );
 }
 
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
-  
+
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
-        queryClient.clear();
+        qc.clear();
       }
       prevUserIdRef.current = userId;
     });
     return unsubscribe;
-  }, [addListener, queryClient]);
+  }, [addListener, qc]);
+
   return null;
 }
 
 function Protected({ component: Component }: { component: React.ComponentType }) {
-  return (
-    <>
-      <SignedIn><Component /></SignedIn>
-      <SignedOut><Redirect to="/sign-in" /></SignedOut>
-    </>
-  );
+  const { isSignedIn, isLoaded } = useAuth();
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect to="/sign-in" />;
+  return <Component />;
 }
 
 function Router() {
@@ -124,17 +120,18 @@ function Router() {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
+
   const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
   const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-  
+
   if (!clerkPubKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-8">
         <div className="max-w-md text-center space-y-4">
           <h1 className="text-2xl font-bold text-destructive">Configuration Error</h1>
           <p className="text-muted-foreground">
-            The <code>VITE_CLERK_PUBLISHABLE_KEY</code> is missing. 
-            Check Vercel Settings and Redeploy.
+            The <code className="bg-muted px-1 rounded">VITE_CLERK_PUBLISHABLE_KEY</code> environment
+            variable is not set. Please add it in your Vercel project settings and redeploy.
           </p>
         </div>
       </div>
@@ -142,27 +139,30 @@ function ClerkProviderWithRoutes() {
   }
 
   return (
+    // ✅ ClerkProvider is inside QueryClientProvider so useQueryClient()
+    // is always available when ClerkQueryClientCacheInvalidator runs
     <ClerkProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ClerkQueryClientCacheInvalidator />
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <ClerkQueryClientCacheInvalidator />
+        <Router />
+        <Toaster />
+      </TooltipProvider>
     </ClerkProvider>
   );
 }
 
+// ✅ App — QueryClientProvider wraps everything at the very top
 function App() {
   return (
     <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
+      <QueryClientProvider client={queryClient}>
+        <ClerkProviderWithRoutes />
+      </QueryClientProvider>
     </WouterRouter>
   );
 }
