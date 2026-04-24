@@ -24,15 +24,11 @@ import PaymentHistory from "@/pages/payments/history";
 import PaymentSuccess from "@/pages/payments/success";
 import CancelBooking from "@/pages/bookings/cancel";
 
-// ✅ QueryClient created once at module level — outside any component
 const queryClient = new QueryClient();
-
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath)
-    ? path.slice(basePath.length) || "/"
-    : path;
+  return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
 }
 
 function SignInPage() {
@@ -53,28 +49,30 @@ function SignUpPage() {
 
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
-
+  
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
-        qc.clear();
+        queryClient.clear();
       }
       prevUserIdRef.current = userId;
     });
     return unsubscribe;
-  }, [addListener, qc]);
-
+  }, [addListener, queryClient]);
+  
   return null;
 }
 
 function Protected({ component: Component }: { component: React.ComponentType }) {
-  const { isSignedIn, isLoaded } = useAuth();
-  if (!isLoaded) return null;
-  if (!isSignedIn) return <Redirect to="/sign-in" />;
-  return <Component />;
+  return (
+    <>
+      <SignedIn><Component /></SignedIn>
+      <SignedOut><Redirect to="/sign-in" /></SignedOut>
+    </>
+  );
 }
 
 function Router() {
@@ -139,8 +137,6 @@ function ClerkProviderWithRoutes() {
   }
 
   return (
-    // ✅ ClerkProvider is inside QueryClientProvider so useQueryClient()
-    // is always available when ClerkQueryClientCacheInvalidator runs
     <ClerkProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
@@ -156,7 +152,7 @@ function ClerkProviderWithRoutes() {
   );
 }
 
-// ✅ App — QueryClientProvider wraps everything at the very top
+// ✅ Fix: QueryClientProvider wraps everything at the top level
 function App() {
   return (
     <WouterRouter base={basePath}>
