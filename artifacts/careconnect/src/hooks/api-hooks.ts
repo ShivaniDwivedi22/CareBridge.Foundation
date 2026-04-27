@@ -171,6 +171,93 @@ export function useGetCareRequest(id: number, options?: { query?: { enabled?: bo
     enabled: !!id && (options?.query?.enabled !== false),
   });
 }
+
+// ── Conversations ──────────────────────────────────────────────────────────
+export function useListConversations(params: { clerkId?: string }, options?: { query?: { queryKey?: any[] } }) {
+  return useQuery({
+    queryKey: ['/api/conversations', params],
+    queryFn: () => {
+      const searchParams = new URLSearchParams();
+      if (params?.clerkId) searchParams.set('clerkId', params.clerkId);
+      const query = searchParams.toString();
+      return customFetch(`/api/conversations${query ? `?${query}` : ''}`);
+    },
+    enabled: !!params?.clerkId,
+  });
+}
+
+export function useCreateConversation() {
+  return useMutation({
+    mutationFn: (data: { data: any }) => customFetch('/api/conversations', {
+      method: 'POST',
+      body: JSON.stringify(data.data),
+    }),
+  });
+}
+
+// ── Messages ───────────────────────────────────────────────────────────────
+export function useListMessages(id: number, options?: { query?: { enabled?: boolean; queryKey?: any[] } }) {
+  return useQuery({
+    queryKey: [`/api/conversations/${id}/messages`],
+    queryFn: () => customFetch(`/api/conversations/${id}/messages`),
+    enabled: !!id && (options?.query?.enabled !== false),
+  });
+}
+
+export function useSendMessage() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => customFetch(`/api/conversations/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  });
+}
+
+// ── Payments / Earnings ────────────────────────────────────────────────────
+export function useGetProviderEarnings(params: { clerkId?: string }, options?: { query?: { queryKey?: any[] } }) {
+  return useQuery({
+    queryKey: ['/api/stats/provider-earnings', params],
+    queryFn: () => {
+      const searchParams = new URLSearchParams();
+      if (params?.clerkId) searchParams.set('clerkId', params.clerkId);
+      const query = searchParams.toString();
+      return customFetch(`/api/stats/provider-earnings${query ? `?${query}` : ''}`);
+    },
+    enabled: !!params?.clerkId,
+  });
+}
+
+export function useGetFeaturedCaregivers() {
+  return useQuery({
+    queryKey: ['/api/stats/featured-caregivers'],
+    queryFn: () => customFetch('/api/stats/featured-caregivers'),
+  });
+}
+
+export function useGetRecentCareRequests() {
+  return useQuery({
+    queryKey: ['/api/stats/recent-requests'],
+    queryFn: () => customFetch('/api/stats/recent-requests'),
+  });
+}
+
+export function useHealthCheck() {
+  return useQuery({
+    queryKey: ['/api/healthz'],
+    queryFn: () => customFetch('/api/healthz'),
+  });
+}
+
+// ── Additional query key helpers ───────────────────────────────────────────
+export const getGetCareRequestQueryKey = (id: number) => [`/api/care-requests/${id}`];
+export const getListCareRequestsQueryKey = (params?: any) => ['/api/care-requests', params];
+export const getListCaregiversQueryKey = (params?: any) => ['/api/caregivers', params];
+export const getGetProviderEarningsQueryKey = (params?: any) => ['/api/stats/provider-earnings', params];
+export const getGetFeaturedCaregiversQueryKey = () => ['/api/stats/featured-caregivers'];
+export const getGetRecentCareRequestsQueryKey = () => ['/api/stats/recent-requests'];
+export const getHealthCheckQueryKey = () => ['/api/healthz'];
+
+
 export const getGetCareRequestQueryKey = (id: number) => [`/api/care-requests/${id}`];
 
 // ✅ Query key helpers for cache invalidation
