@@ -1,4 +1,4 @@
-import { useListMessages, useSendMessage, getListMessagesQueryKey } from "@workspace/api-client-react";
+import { useListMessages, useSendMessage, getListMessagesQueryKey } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
 import { useParams, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
