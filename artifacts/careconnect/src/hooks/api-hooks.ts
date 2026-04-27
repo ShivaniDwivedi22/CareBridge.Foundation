@@ -164,9 +164,23 @@ export function useAdminRejectCaregiver() {
   });
 }
 
+export function useGetCareRequest(id: number, options?: { query?: { enabled?: boolean; queryKey?: any[] } }) {
+  return useQuery({
+    queryKey: [`/api/care-requests/${id}`],
+    queryFn: () => customFetch(`/api/care-requests/${id}`),
+    enabled: !!id && (options?.query?.enabled !== false),
+  });
+}
+export const getGetCareRequestQueryKey = (id: number) => [`/api/care-requests/${id}`];
+
 // ✅ Query key helpers for cache invalidation
 export const getListBookingsQueryKey = () => ['/api/bookings'];
 export const getGetStatsOverviewQueryKey = () => ['/api/stats/overview'];
 export const getListReviewsQueryKey = (params?: any) => ['/api/reviews', params];
 export const getAdminListCaregiversQueryKey = () => ['/api/admin/caregivers'];
 export const getGetCaregiverQueryKey = (id: number) => [`/api/caregivers/${id}`];
+export const getListCareRequestsQueryKey = (params?: any) => ['/api/care-requests', params];
+export const getListCaregiversQueryKey = (params?: any) => ['/api/caregivers', params];
+export const getListConversationsQueryKey = (params?: any) => ['/api/conversations', params];
+export const getListMessagesQueryKey = (id: number) => [`/api/conversations/${id}/messages`];
+
