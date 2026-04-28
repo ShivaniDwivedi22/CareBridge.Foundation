@@ -66,7 +66,7 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      external: ['@/hooks/api-hooks'],
+      //external: ['@/hooks/api-hooks'],
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
         warn(warning);
