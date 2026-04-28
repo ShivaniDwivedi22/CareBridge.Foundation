@@ -1,21 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/vercel-server.mjs",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "artifacts/careconnect/package.json",
-      "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "dist/public",
-        "installCommand": "pnpm install --no-frozen-lockfile" 
-      }
-    }
-  ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "api/vercel-server.mjs" },
-    { "source": "/((?!api).*)", "destination": "artifacts/careconnect/dist/public/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
