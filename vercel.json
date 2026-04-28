@@ -1,12 +1,13 @@
 {
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "destination": "/artifacts/api-server/src/index.ts"
     },
     {
       "source": "/((?!api).*)",
-      "destination": "/index.html"
+      "destination": "/artifacts/careconnect/index.html"
     }
   ]
 }
