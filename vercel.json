@@ -18,3 +18,4 @@
     { "source": "/api/:path*", "destination": "api/vercel-server.mjs" },
     { "source": "/((?!api).*)", "destination": "artifacts/careconnect/dist/public/index.html" }
   ]
+}
