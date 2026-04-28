@@ -7,7 +7,7 @@
     },
     {
       "source": "/((?!api).*)",
-      "destination": "/artifacts/careconnect/index.html"
+      "destination": "/artifacts/careconnect/dist/public/index.html"
     }
   ]
 }
