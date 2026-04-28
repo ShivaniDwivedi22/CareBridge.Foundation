@@ -1,4 +1,4 @@
-//import {useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey,} from "@workspace/api-client-react";
+//import {useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey,} from "@/hooks/api-hooks";
 import {useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey,} from "@/hooks/api-hooks";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,4 +1,4 @@
-//import { useCreateCaregiver, useListCategories } from "@workspace/api-client-react";
+//import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";

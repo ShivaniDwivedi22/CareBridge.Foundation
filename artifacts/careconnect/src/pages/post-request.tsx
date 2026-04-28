@@ -1,4 +1,4 @@
-import { useCreateCareRequest, useListCategories } from "@workspace/api-client-react";
+import { useCreateCareRequest, useListCategories } from "@/hooks/api-hooks";
 import { useLocation } from "wouter";
 import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";

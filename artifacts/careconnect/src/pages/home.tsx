@@ -1,4 +1,4 @@
-//import { useListCategories, useListCaregivers, useListCareRequests } from "@workspace/api-client-react";
+//import { useListCategories, useListCaregivers, useListCareRequests } from "@/hooks/api-hooks";
 import { useListCategories, useListCaregivers, useListCareRequests } from "@/hooks/api-hooks";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
