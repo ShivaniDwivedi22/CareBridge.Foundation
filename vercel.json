@@ -1,13 +1,11 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "artifacts/api-server/src/index.ts", "use": "@vercel/node" },
+    { "src": "artifacts/careconnect/package.json", "use": "@vercel/static-build" }
+  ],
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/artifacts/api-server/src/index.ts"
-    },
-    {
-      "source": "/((?!api).*)",
-      "destination": "/artifacts/careconnect/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "artifacts/api-server/src/index.ts" },
+    { "source": "/(.*)", "destination": "artifacts/careconnect/index.html" }
   ]
 }
