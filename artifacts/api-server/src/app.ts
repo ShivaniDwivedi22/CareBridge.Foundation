@@ -9,7 +9,6 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
-// ✅ CORS origin checker
 const corsOptions: cors.CorsOptions = {
   credentials: true,
   origin: (origin, callback) => {
@@ -29,10 +28,10 @@ const corsOptions: cors.CorsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// ✅ Handle preflight OPTIONS requests explicitly BEFORE all other middleware
+// ✅ Handle preflight before anything else
 app.options("*", cors(corsOptions));
 
-// Stripe webhooks need raw body — must be registered BEFORE express.json()
+// Stripe webhook needs raw body — before express.json()
 app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
 app.use(
@@ -50,8 +49,6 @@ app.use(
 );
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
-// ✅ Apply CORS to all routes
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
