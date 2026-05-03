@@ -1,4 +1,5 @@
-import { useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey } from "@workspace/api-client-react";
+//import {useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey,} from "@/hooks/api-hooks";
+import {useGetStatsOverview, useListBookings, useUpdateBookingStatus, getListBookingsQueryKey, getGetStatsOverviewQueryKey,} from "@/hooks/api-hooks";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -9,13 +10,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { apiUrl } from "@/lib/api";
 import {
-  TrendingUp, CheckCircle2, XCircle, CreditCard,
-  Users, ArrowRight, CalendarDays, Star,
-  BriefcaseMedical, CircleDot, BarChart3, ChevronRight,
-  Lock, Phone, MessageCircle, HeartHandshake, Search, Filter,
+  CheckCircle2, XCircle, CreditCard, ArrowRight, CalendarDays,
+  Star, CircleDot, BarChart3, ChevronRight, Lock, Phone,
+  MessageCircle, HeartHandshake, Search, Filter, ChevronDown,
 } from "lucide-react";
 
-// ── Journey steps helper ─────────────────────────────────────────────────────
+// ── Journey steps ─────────────────────────────────────────────────────────────
 const JOURNEY = ["Request", "Accepted", "Pay", "Contact", "Service", "Review"];
 
 function journeyStep(status: string, isPaid: boolean): number {
@@ -33,9 +33,10 @@ function MiniJourney({ status, isPaid }: { status: string; isPaid: boolean }) {
     <div className="flex items-center gap-0.5 mt-2">
       {JOURNEY.map((label, i) => (
         <div key={i} className="flex items-center gap-0.5">
-          <div className={`h-1.5 w-6 rounded-full transition-all ${
-            i <= current ? "bg-primary" : "bg-muted-foreground/20"
-          }`} title={label} />
+          <div
+            className={`h-1.5 w-6 rounded-full transition-all ${i <= current ? "bg-primary" : "bg-muted-foreground/20"}`}
+            title={label}
+          />
         </div>
       ))}
       <span className="ml-2 text-xs text-muted-foreground">{JOURNEY[current]}</span>
@@ -45,8 +46,8 @@ function MiniJourney({ status, isPaid }: { status: string; isPaid: boolean }) {
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 function StatCard({
-  label, value, icon, colorClass, bgClass, loading, prefix = "", suffix = "",
-  onClick, isActive,
+  label, value, icon, colorClass, bgClass, loading,
+  prefix = "", suffix = "", onClick, isActive,
 }: {
   label: string; value?: number | string; icon: React.ReactNode;
   colorClass: string; bgClass: string; loading: boolean;
@@ -65,39 +66,98 @@ function StatCard({
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorClass} shrink-0`}>
         {icon}
       </div>
-      {loading ? <Skeleton className="h-8 w-20" /> : (
-        <div className="text-2xl font-bold tracking-tight text-foreground">{prefix}{value ?? 0}{suffix}</div>
-      )}
+      {loading
+        ? <Skeleton className="h-8 w-20" />
+        : <div className="text-2xl font-bold tracking-tight text-foreground">{prefix}{value ?? 0}{suffix}</div>
+      }
       <div className={`text-xs font-medium uppercase tracking-wider ${isActive ? "text-primary" : "text-muted-foreground"}`}>
-        {label} {onClick && !isActive ? <span className="normal-case text-muted-foreground/50">↗</span> : ""}
+        {label}{onClick && !isActive ? <span className="normal-case text-muted-foreground/50 ml-1">↗</span> : ""}
       </div>
     </div>
   );
 }
 
+// ── Booking detail drawer ─────────────────────────────────────────────────────
+// ✅ NEW: clicking a booking row expands full details inline
+function BookingDetail({ booking, isPaid, isProviderView, onClose }: {
+  booking: any; isPaid: boolean; isProviderView: boolean; onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.25 }}
+      className="overflow-hidden"
+    >
+      <div className="mx-1 mb-3 rounded-xl bg-muted/30 border border-border/40 p-4 text-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-base">{booking.careRequest?.title ?? "Care Service"}</span>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <div><span className="font-medium text-foreground">Caregiver:</span> {booking.caregiver?.name ?? "—"}</div>
+          <div><span className="font-medium text-foreground">Rate:</span> ${booking.caregiver?.hourlyRate ?? "?"}/hr</div>
+          <div><span className="font-medium text-foreground">Status:</span> {booking.status}</div>
+          <div><span className="font-medium text-foreground">Paid:</span> {isPaid ? "Yes ✅" : "No"}</div>
+          {booking.startDate && (
+            <div className="col-span-2">
+              <span className="font-medium text-foreground">Start Date:</span>{" "}
+              {new Date(booking.startDate).toLocaleDateString()}
+            </div>
+          )}
+          {booking.message && (
+            <div className="col-span-2 italic text-muted-foreground/70">"{booking.message}"</div>
+          )}
+        </div>
+        {isPaid && booking.caregiver?.phone && (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-800">
+            <Phone className="w-3.5 h-3.5 text-green-600 shrink-0" />
+            Contact unlocked: <strong className="ml-1">{booking.caregiver.phone}</strong>
+          </div>
+        )}
+        {!isPaid && !isProviderView && booking.status === "confirmed" && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+            <Lock className="w-3 h-3 shrink-0" />
+            Pay to unlock caregiver contact details
+          </div>
+        )}
+        <MiniJourney status={booking.status} isPaid={isPaid} />
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Booking row ───────────────────────────────────────────────────────────────
+// ✅ Fixed: clicking anywhere on the row expands full booking details
 function BookingRow({
-  booking, onAccept, onReject, onComplete, onPay, onCancel, isPending, isPaid, isProviderView,
+  booking, onAccept, onReject, onComplete, onPay, onCancel,
+  isPending, isPaid, isProviderView,
 }: {
   booking: any; onAccept: () => void; onReject: () => void;
   onComplete: () => void; onPay: () => void; onCancel: () => void;
   isPending: boolean; isPaid: boolean; isProviderView?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   const statusConfig: Record<string, { label: string; className: string; dot: string }> = {
-    pending:   { label: "Awaiting response", className: "bg-amber-50 text-amber-700 border-amber-200",   dot: "bg-amber-400" },
-    confirmed: { label: "Confirmed",         className: "bg-green-50 text-green-700 border-green-200",   dot: "bg-green-500" },
-    completed: { label: "Completed",         className: "bg-blue-50 text-blue-700 border-blue-200",      dot: "bg-blue-500" },
-    cancelled: { label: "Cancelled",         className: "bg-gray-100 text-gray-500 border-gray-200",     dot: "bg-gray-400" },
+    pending:   { label: "Awaiting response", className: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-400" },
+    confirmed: { label: "Confirmed",         className: "bg-green-50 text-green-700 border-green-200",  dot: "bg-green-500" },
+    completed: { label: "Completed",         className: "bg-blue-50 text-blue-700 border-blue-200",     dot: "bg-blue-500" },
+    cancelled: { label: "Cancelled",         className: "bg-gray-100 text-gray-500 border-gray-200",    dot: "bg-gray-400" },
   };
   const cfg = statusConfig[booking.status] ?? statusConfig.pending;
 
   return (
-    <div className="flex flex-col gap-3 py-4 px-1">
-      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+    <div className="py-3 px-1">
+      {/* ✅ Clickable header row — expands details */}
+      <div
+        className="flex flex-col sm:flex-row sm:items-start gap-3 cursor-pointer group"
+        onClick={() => setExpanded(e => !e)}
+      >
         <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
           {(booking.caregiver?.name ?? "?").charAt(0)}
         </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-0.5">
             <span className="font-semibold text-sm truncate">{booking.caregiver?.name ?? "Unknown"}</span>
@@ -109,17 +169,13 @@ function BookingRow({
           <div className="text-xs text-muted-foreground truncate">
             {booking.careRequest?.title ?? "Care Service"} · ${booking.caregiver?.hourlyRate ?? "?"}/hr
           </div>
-          {booking.message && (
-            <div className="text-xs text-muted-foreground/60 mt-0.5 italic truncate">"{booking.message}"</div>
-          )}
           <MiniJourney status={booking.status} isPaid={isPaid} />
         </div>
-
-        {/* actions */}
-        <div className="flex gap-2 shrink-0 flex-wrap items-center">
+        <div className="flex gap-2 shrink-0 flex-wrap items-center" onClick={e => e.stopPropagation()}>
           {booking.status === "pending" && (
             <>
-              <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 border-red-200 h-8 px-3 text-xs"
+              <Button size="sm" variant="outline"
+                className="text-red-600 hover:bg-red-50 border-red-200 h-8 px-3 text-xs"
                 onClick={onReject} disabled={isPending}>
                 <XCircle className="w-3 h-3 mr-1" /> Decline
               </Button>
@@ -134,43 +190,44 @@ function BookingRow({
               <Button size="sm" className="h-8 px-3 text-xs" onClick={onPay} disabled={isPending}>
                 <CreditCard className="w-3 h-3 mr-1" /> Pay Now
               </Button>
-              <Button size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+              <Button size="sm" variant="ghost"
+                className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
                 onClick={onCancel} disabled={isPending}>
                 <XCircle className="w-3.5 h-3.5" />
               </Button>
             </>
           )}
           {booking.status === "confirmed" && isPaid && (
-            <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={onComplete} disabled={isPending}>
+            <Button size="sm" variant="outline" className="h-8 px-3 text-xs"
+              onClick={onComplete} disabled={isPending}>
               <CheckCircle2 className="w-3 h-3 mr-1" /> Mark Done
             </Button>
           )}
           {booking.status === "completed" && (
             <Link href={`/caregivers/${booking.caregiverId}`}>
-              <Button size="sm" variant="ghost" className="h-8 px-3 text-xs text-amber-600 hover:bg-amber-50">
+              <Button size="sm" variant="ghost"
+                className="h-8 px-3 text-xs text-amber-600 hover:bg-amber-50">
                 <Star className="w-3 h-3 mr-1" /> Review
               </Button>
             </Link>
           )}
+          <ChevronDown
+            className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
         </div>
       </div>
 
-      {/* Contact reveal / lock notice */}
-      {booking.status === "confirmed" && isPaid && booking.caregiver?.phone && (
-        <div className="ml-12 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-xs text-green-800">
-          <Phone className="w-3.5 h-3.5 shrink-0 text-green-600" />
-          <span>Contact unlocked: <strong>{booking.caregiver.phone}</strong></span>
-          <Link href="/messages" className="ml-auto text-green-700 hover:underline flex items-center gap-1">
-            <MessageCircle className="w-3 h-3" /> Message
-          </Link>
-        </div>
-      )}
-      {booking.status === "confirmed" && !isPaid && !isProviderView && (
-        <div className="ml-12 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-700">
-          <Lock className="w-3 h-3 shrink-0" />
-          <span>Pay to unlock caregiver contact details</span>
-        </div>
-      )}
+      {/* ✅ Expandable detail panel */}
+      <AnimatePresence>
+        {expanded && (
+          <BookingDetail
+            booking={booking}
+            isPaid={isPaid}
+            isProviderView={!!isProviderView}
+            onClose={() => setExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -204,16 +261,13 @@ export default function Dashboard() {
   const [loadingProvider, setLoadingProvider] = useState(false);
 
   const { data: stats, isLoading: isLoadingStats } = useGetStatsOverview({
-    query: { queryKey: getGetStatsOverviewQueryKey() }
+    query: { queryKey: getGetStatsOverviewQueryKey() },
   });
-
   const { data: allBookings, isLoading: isLoadingBookings } = useListBookings({}, {
-    query: { queryKey: getListBookingsQueryKey() }
+    query: { queryKey: getListBookingsQueryKey() },
   });
-
   const updateBooking = useUpdateBookingStatus();
 
-  // Fetch provider bookings via API (bookings where user is the caregiver)
   useEffect(() => {
     if (!user?.id) return;
     setLoadingProvider(true);
@@ -224,7 +278,6 @@ export default function Dashboard() {
       .finally(() => setLoadingProvider(false));
   }, [user?.id, allBookings]);
 
-  // Fetch payment history to know which bookings are paid
   useEffect(() => {
     const url = user?.id
       ? apiUrl(`/api/payments/history?clerkId=${user.id}`)
@@ -233,7 +286,9 @@ export default function Dashboard() {
       .then(r => r.json())
       .then((payments: any[]) => {
         if (!Array.isArray(payments)) return;
-        const paid = new Set(payments.filter(p => p.status === "succeeded").map(p => Number(p.bookingId)));
+        const paid = new Set(
+          payments.filter(p => p.status === "succeeded").map(p => Number(p.bookingId))
+        );
         setPaidBookingIds(paid);
       })
       .catch(() => {});
@@ -250,20 +305,15 @@ export default function Dashboard() {
     });
   };
 
-  // Seeker view: bookings the current user made
-  const seekerBookings = allBookings?.filter(b =>
-    !user?.id || b.seekerClerkId === user.id
-  ) ?? [];
-
+  const seekerBookings = allBookings?.filter(b => !user?.id || b.seekerClerkId === user.id) ?? [];
   const bookings = dashMode === "seeker" ? seekerBookings : providerBookings;
-
   const isLoadingCurrentBookings = dashMode === "seeker" ? isLoadingBookings : loadingProvider;
-  const inProgress = bookings.filter(b => b.status === "confirmed");
-  const upcoming   = bookings.filter(b => b.status === "pending");
-  const completed  = bookings.filter(b => b.status === "completed");
-  const allCompleted = (allBookings ?? []).filter(b => b.status === "completed");
 
-  const totalPaid = Array.from(paidBookingIds).length;
+  const inProgress  = bookings.filter(b => b.status === "confirmed");
+  const upcoming    = bookings.filter(b => b.status === "pending");
+  const completed   = bookings.filter(b => b.status === "completed");
+  const allCompleted = (allBookings ?? []).filter(b => b.status === "completed");
+  const totalPaid   = paidBookingIds.size;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -271,7 +321,6 @@ export default function Dashboard() {
     if (h < 17) return "Good afternoon";
     return "Good evening";
   };
-  const firstName = user?.firstName ?? "there";
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -287,7 +336,7 @@ export default function Dashboard() {
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
             <h1 className="font-serif text-3xl md:text-4xl font-bold">
-              {greeting()}, {firstName} 👋
+              {greeting()}, {user?.firstName ?? "there"} 👋
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">Your care activity at a glance.</p>
           </div>
@@ -310,30 +359,35 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* KPI tiles */}
+        {/* ✅ KPI tiles — clicking filters the list below */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"
         >
           <StatCard label="Completed" value={allCompleted.length}
             icon={<CheckCircle2 className="w-5 h-5" />}
-            colorClass="bg-blue-100 text-blue-600" bgClass="bg-white" loading={isLoadingBookings}
+            colorClass="bg-blue-100 text-blue-600" bgClass="bg-white"
+            loading={isLoadingBookings}
             onClick={() => setFocusStatus(focusStatus === "completed" ? null : "completed")}
             isActive={focusStatus === "completed"} />
           <StatCard label="In Progress" value={inProgress.length}
             icon={<CircleDot className="w-5 h-5" />}
-            colorClass="bg-green-100 text-green-600" bgClass="bg-white" loading={isLoadingBookings}
+            colorClass="bg-green-100 text-green-600" bgClass="bg-white"
+            loading={isLoadingBookings}
             onClick={() => setFocusStatus(focusStatus === "confirmed" ? null : "confirmed")}
             isActive={focusStatus === "confirmed"} />
           <StatCard label="Pending" value={upcoming.length}
             icon={<CalendarDays className="w-5 h-5" />}
-            colorClass="bg-amber-100 text-amber-600" bgClass="bg-white" loading={isLoadingBookings}
+            colorClass="bg-amber-100 text-amber-600" bgClass="bg-white"
+            loading={isLoadingBookings}
             onClick={() => setFocusStatus(focusStatus === "pending" ? null : "pending")}
             isActive={focusStatus === "pending"} />
+          {/* ✅ Fixed: removed wrong "$" prefix — shows count not dollar amount */}
           <StatCard label="Payments Made" value={totalPaid}
             icon={<CreditCard className="w-5 h-5" />}
-            colorClass="bg-primary/15 text-primary" bgClass="bg-white" loading={isLoadingBookings}
-            prefix="$"
+            colorClass="bg-primary/15 text-primary" bgClass="bg-white"
+            loading={isLoadingBookings}
             onClick={() => setLocation("/payments/history")} />
         </motion.div>
 
@@ -343,10 +397,8 @@ export default function Dashboard() {
             <span className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 text-primary text-sm font-medium rounded-full px-3.5 py-1.5">
               <Filter className="w-3.5 h-3.5" />
               Showing: {focusStatus === "confirmed" ? "In Progress" : focusStatus === "pending" ? "Pending" : "Completed"}
-              <button
-                onClick={() => setFocusStatus(null)}
-                className="ml-1 opacity-60 hover:opacity-100 transition-opacity font-bold"
-              >
+              <button onClick={() => setFocusStatus(null)}
+                className="ml-1 opacity-60 hover:opacity-100 transition-opacity font-bold">
                 × Clear
               </button>
             </span>
@@ -359,24 +411,16 @@ export default function Dashboard() {
           className="flex items-center gap-2 mb-6"
         >
           <div className="flex bg-white border border-border/50 rounded-xl p-1 shadow-sm">
-            <button
-              onClick={() => setDashMode("seeker")}
+            <button onClick={() => setDashMode("seeker")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                dashMode === "seeker"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+                dashMode === "seeker" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>
               <Search className="w-3.5 h-3.5" /> Seeking Care
             </button>
-            <button
-              onClick={() => setDashMode("provider")}
+            <button onClick={() => setDashMode("provider")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                dashMode === "provider"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+                dashMode === "provider" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>
               <HeartHandshake className="w-3.5 h-3.5" /> Providing Care
             </button>
           </div>
@@ -397,7 +441,11 @@ export default function Dashboard() {
           >
             {/* In Progress — 2 cols */}
             <div className="lg:col-span-2 space-y-5">
-              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "confirmed" ? "border-green-400 ring-2 ring-green-200" : focusStatus && focusStatus !== "confirmed" ? "opacity-50" : "border-border/40"}`}>
+              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
+                focusStatus === "confirmed" ? "border-green-400 ring-2 ring-green-200"
+                : focusStatus && focusStatus !== "confirmed" ? "opacity-50"
+                : "border-border/40"
+              }`}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                   <div>
                     <h2 className="font-semibold text-sm flex items-center gap-2">
@@ -405,9 +453,7 @@ export default function Dashboard() {
                       {dashMode === "seeker" ? "My Active Bookings" : "Requests to Fulfill"}
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {dashMode === "seeker"
-                        ? "Confirmed bookings — pay to unlock contact details"
-                        : "Requests from seekers you've accepted"}
+                      Click any booking to view full details
                     </p>
                   </div>
                   {inProgress.length > 0 && (
@@ -452,9 +498,13 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Completed bookings with review CTA */}
+              {/* Completed */}
               {(completed.length > 0 || focusStatus === "completed") && (
-                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "completed" ? "border-blue-400 ring-2 ring-blue-200" : focusStatus && focusStatus !== "completed" ? "opacity-50" : "border-border/40"}`}>
+                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
+                  focusStatus === "completed" ? "border-blue-400 ring-2 ring-blue-200"
+                  : focusStatus && focusStatus !== "completed" ? "opacity-50"
+                  : "border-border/40"
+                }`}>
                   <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                     <h2 className="font-semibold text-sm flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500" />
@@ -481,8 +531,12 @@ export default function Dashboard() {
 
             {/* Right column */}
             <div className="flex flex-col gap-5">
-              {/* Pending requests */}
-              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${focusStatus === "pending" ? "border-amber-400 ring-2 ring-amber-200" : focusStatus && focusStatus !== "pending" ? "opacity-50" : "border-border/40"}`}>
+              {/* Pending */}
+              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
+                focusStatus === "pending" ? "border-amber-400 ring-2 ring-amber-200"
+                : focusStatus && focusStatus !== "pending" ? "opacity-50"
+                : "border-border/40"
+              }`}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-muted/5">
                   <div>
                     <h2 className="font-semibold text-sm flex items-center gap-2">
@@ -508,35 +562,23 @@ export default function Dashboard() {
                     <EmptyState
                       icon={<CalendarDays className="w-5 h-5" />}
                       title="No pending requests"
-                      desc={dashMode === "seeker" ? "Browse and book a caregiver to get started." : "When seekers book you, requests appear here."}
+                      desc={dashMode === "seeker"
+                        ? "Browse and book a caregiver to get started."
+                        : "When seekers book you, requests appear here."}
                     />
                   ) : (
                     upcoming.map(booking => (
-                      <div key={booking.id} className="py-4 flex flex-col gap-2">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
-                            {(booking.caregiver?.name ?? "?").charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">{booking.caregiver?.name ?? "Caregiver"}</div>
-                            <div className="text-xs text-muted-foreground truncate">{booking.careRequest?.title ?? "Care Request"} · ${booking.caregiver?.hourlyRate ?? "?"}/hr</div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 pl-11">
-                          <Button size="sm" variant="outline"
-                            className="h-7 text-xs px-2.5 text-red-600 border-red-200 hover:bg-red-50 flex-1"
-                            onClick={() => handleStatusUpdate(booking.id, "cancelled")}
-                            disabled={updateBooking.isPending}>
-                            Decline
-                          </Button>
-                          <Button size="sm"
-                            className="h-7 text-xs px-2.5 bg-green-600 hover:bg-green-700 text-white flex-1"
-                            onClick={() => handleStatusUpdate(booking.id, "confirmed")}
-                            disabled={updateBooking.isPending}>
-                            Accept
-                          </Button>
-                        </div>
-                      </div>
+                      <BookingRow
+                        key={booking.id} booking={booking}
+                        isPending={updateBooking.isPending}
+                        isPaid={paidBookingIds.has(booking.id)}
+                        isProviderView={dashMode === "provider"}
+                        onAccept={() => handleStatusUpdate(booking.id, "confirmed")}
+                        onReject={() => handleStatusUpdate(booking.id, "cancelled")}
+                        onComplete={() => handleStatusUpdate(booking.id, "completed")}
+                        onPay={() => setLocation(`/checkout?bookingId=${booking.id}&amount=${Math.round((booking.caregiver?.hourlyRate ?? 25) * 8 * 100)}&caregiver=${encodeURIComponent(booking.caregiver?.name ?? "")}&service=${encodeURIComponent(booking.careRequest?.title ?? "Care Service")}`)}
+                        onCancel={() => setLocation(`/bookings/cancel?bookingId=${booking.id}&caregiver=${encodeURIComponent(booking.caregiver?.name ?? "")}&hours=72`)}
+                      />
                     ))
                   )}
                 </div>
@@ -556,9 +598,10 @@ export default function Dashboard() {
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground text-xs">{item.label}</span>
-                      {item.loading ? <Skeleton className="h-4 w-8" /> : (
-                        <span className="font-semibold tabular-nums text-sm">{item.value ?? 0}</span>
-                      )}
+                      {item.loading
+                        ? <Skeleton className="h-4 w-8" />
+                        : <span className="font-semibold tabular-nums text-sm">{item.value ?? 0}</span>
+                      }
                     </div>
                   ))}
                 </div>

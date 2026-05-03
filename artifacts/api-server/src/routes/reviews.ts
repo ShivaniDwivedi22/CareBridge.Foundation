@@ -39,14 +39,34 @@ router.post("/reviews", async (req, res): Promise<void> => {
     return;
   }
 
-  const [review] = await db.insert(reviewsTable).values(parsed.data).returning();
+  // ✅ Fix Issue 9: block self-reviews at the API level
+  // Look up the caregiver to get their clerkId
+  if (parsed.data.reviewerClerkId) {
+    const [caregiver] = await db
+      .select({ clerkId: caregiversTable.clerkId })
+      .from(caregiversTable)
+      .where(eq(caregiversTable.id, parsed.data.caregiverId))
+      .limit(1);
+
+    if (caregiver?.clerkId && caregiver.clerkId === parsed.data.reviewerClerkId) {
+      res.status(400).json({ error: "You cannot review your own profile." });
+      return;
+    }
+  }
+
+  const [review] = await db
+    .insert(reviewsTable)
+    .values(parsed.data)
+    .returning();
 
   const allReviews = await db
     .select()
     .from(reviewsTable)
     .where(eq(reviewsTable.caregiverId, parsed.data.caregiverId));
 
-  const approvedReviews = allReviews.filter((r) => r.status === "approved" || r.id === review.id);
+  const approvedReviews = allReviews.filter(
+    (r) => r.status === "approved" || r.id === review.id
+  );
   const avgRating =
     approvedReviews.length > 0
       ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length

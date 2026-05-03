@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from '@clerk/react';
+import { ClerkProvider, useClerk, useAuth, SignIn, SignUp } from "@clerk/react";
+import { SignedIn, SignedOut } from "@/components/clerk-helpers";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,9 +25,6 @@ import PaymentSuccess from "@/pages/payments/success";
 import CancelBooking from "@/pages/bookings/cancel";
 
 const queryClient = new QueryClient();
-
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function stripBase(path: string): string {
@@ -53,6 +51,7 @@ function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const queryClient = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
@@ -63,14 +62,15 @@ function ClerkQueryClientCacheInvalidator() {
     });
     return unsubscribe;
   }, [addListener, queryClient]);
+  
   return null;
 }
 
 function Protected({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
-      <Show when="signed-in"><Component /></Show>
-      <Show when="signed-out"><Redirect to="/sign-in" /></Show>
+      <SignedIn><Component /></SignedIn>
+      <SignedOut><Redirect to="/sign-in" /></SignedOut>
     </>
   );
 }
@@ -119,6 +119,9 @@ function Router() {
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
+  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+
   if (!clerkPubKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-8">
@@ -126,8 +129,7 @@ function ClerkProviderWithRoutes() {
           <h1 className="text-2xl font-bold text-destructive">Configuration Error</h1>
           <p className="text-muted-foreground">
             The <code className="bg-muted px-1 rounded">VITE_CLERK_PUBLISHABLE_KEY</code> environment
-            variable is not set. Please add it in your Vercel project settings under{" "}
-            <strong>Settings → Environment Variables</strong> and redeploy.
+            variable is not set. Please add it in your Vercel project settings and redeploy.
           </p>
         </div>
       </div>
@@ -141,21 +143,22 @@ function ClerkProviderWithRoutes() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ClerkQueryClientCacheInvalidator />
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <ClerkQueryClientCacheInvalidator />
+        <Router />
+        <Toaster />
+      </TooltipProvider>
     </ClerkProvider>
   );
 }
 
+// ✅ Fix: QueryClientProvider wraps everything at the top level
 function App() {
   return (
     <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
+      <QueryClientProvider client={queryClient}>
+        <ClerkProviderWithRoutes />
+      </QueryClientProvider>
     </WouterRouter>
   );
 }

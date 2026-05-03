@@ -9,7 +9,29 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
-// Stripe webhooks need raw body — must be registered BEFORE express.json()
+const corsOptions: cors.CorsOptions = {
+  credentials: true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      origin.endsWith(".vercel.app") ||
+      origin === "[carebridge.foundation](https://www.carebridge.foundation)" ||
+      origin === "[carebridge.foundation](https://carebridge.foundation)" ||
+      origin === "[localhost](http://localhost:5173)" ||
+      origin === "[localhost](http://localhost:3000)"
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// ✅ Handle preflight before anything else
+app.options("*", cors(corsOptions));
+
+// Stripe webhook needs raw body — before express.json()
 app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
 
 app.use(
@@ -17,29 +39,20 @@ app.use(
     logger,
     serializers: {
       req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
+        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
       },
       res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }),
 );
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(clerkMiddleware());
-
 app.use("/api", router);
 
 export default app;

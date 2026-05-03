@@ -9,7 +9,7 @@ import {
   getAdminListCaregiversQueryKey,
   getListReviewsQueryKey,
   getGetStatsOverviewQueryKey,
-} from "@workspace/api-client-react";
+} from "@/hooks/api-hooks";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -479,49 +479,99 @@ export default function AdminPanel() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="border-b border-border/40 bg-muted/20">
               <CardTitle>Review Moderation</CardTitle>
-              <CardDescription>Approve or reject submitted ratings before they go live.</CardDescription>
+              <CardDescription>
+                Approve or reject submitted ratings before they go live.
+                Self-reviews are automatically flagged and blocked.
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {isLoadingReviews ? (
-                <div className="p-6 space-y-4">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
+                <div className="p-6 space-y-4">
+                  {[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+                </div>
               ) : pendingReviews.length === 0 ? (
-                <div className="p-10 text-center text-muted-foreground">No pending reviews to moderate.</div>
+                <div className="p-10 text-center text-muted-foreground">
+                  No pending reviews to moderate.
+                </div>
               ) : (
                 <div className="divide-y divide-border/40">
-                  {pendingReviews.map(review => (
-                    <div key={review.id} className="p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">{review.reviewerName}</span>
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
-                            ))}
+                  {pendingReviews.map(review => {
+                    // ✅ Fix Issue 9: detect self-review
+                    // reviewerClerkId matches the caregiver's clerkId → self-review
+                    const isSelfReview =
+                      review.reviewerClerkId &&
+                      (review as any).caregiverClerkId &&
+                      review.reviewerClerkId === (review as any).caregiverClerkId;
+        
+                    return (
+                      <div
+                        key={review.id}
+                        className={`p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
+                          isSelfReview ? "bg-red-50 border-l-4 border-red-400" : ""
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-semibold">{review.reviewerName}</span>
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${
+                                  i < review.rating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-muted-foreground/30"
+                                }`} />
+                              ))}
+                            </div>
+                            <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-600">
+                              Pending
+                            </Badge>
+                            {/* ✅ Self-review badge */}
+                            {isSelfReview && (
+                              <Badge className="text-xs bg-red-100 text-red-700 border border-red-300">
+                                ⚠ Self-Review — Auto-blocked
+                              </Badge>
+                            )}
                           </div>
-                          <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-600">Pending</Badge>
+                          <p className="text-sm text-muted-foreground">{review.comment}</p>
+                          <p className="text-xs text-muted-foreground/60 mt-1">
+                            Caregiver #{review.caregiverId} · {new Date(review.createdAt).toLocaleDateString()}
+                          </p>
+                          {isSelfReview && (
+                            <p className="text-xs text-red-600 font-medium mt-1">
+                              This review was submitted by the caregiver themselves and cannot be approved.
+                            </p>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">
-                          Caregiver #{review.caregiverId} · {new Date(review.createdAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex gap-2 shrink-0">
+                          {/* ✅ Fix Issue 9: disable Approve button for self-reviews */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleReviewStatus(review.id, "rejected")}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" /> Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleReviewStatus(review.id, "approved")}
+                            // ✅ Self-reviews cannot be approved
+                            disabled={!!isSelfReview}
+                            title={isSelfReview ? "Cannot approve a self-review" : undefined}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleReviewStatus(review.id, "rejected")}>
-                          <XCircle className="w-4 h-4 mr-1" /> Reject
-                        </Button>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleReviewStatus(review.id, "approved")}>
-                          <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="refunds">
           <Card className="border-border/50 shadow-sm">

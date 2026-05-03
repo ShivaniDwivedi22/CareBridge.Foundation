@@ -1,4 +1,5 @@
-import { useCreateCaregiver, useListCategories } from "@workspace/api-client-react";
+//import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
+import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { useState, useEffect, useRef } from "react";
@@ -24,16 +25,8 @@ import {
 import { cn } from "@/lib/utils";
 
 // ── Requirement matrix ────────────────────────────────────────────────────────
-// Categories (slugs): child-care, newborn-care, postpartum-care, elderly-care,
-//                     pet-care, house-help, kitchen-food-help, event-support,
-//                     travel-medical-care, special-needs-care
-// R = required, O = optional, N = not applicable
-
 type ReqLevel = "R" | "O" | "N";
-
-type FieldReq = {
-  [fieldKey: string]: { [categorySlug: string]: ReqLevel };
-};
+type FieldReq = { [fieldKey: string]: { [categorySlug: string]: ReqLevel } };
 
 const FIELD_REQUIREMENTS: FieldReq = {
   pastWorkReferences: {
@@ -66,6 +59,7 @@ const FIELD_REQUIREMENTS: FieldReq = {
     "kitchen-food-help": "O", "event-support": "R",
     "travel-medical-care": "R", "special-needs-care": "R",
   },
+  // ✅ Fix Issue 2: medicalNursingLicense kept in matrix but field is now rendered
   medicalNursingLicense: {
     "child-care": "O", "newborn-care": "O", "postpartum-care": "O",
     "elderly-care": "O", "pet-care": "N", "house-help": "N",
@@ -110,34 +104,28 @@ function ReqBadge({ level }: { level: ReqLevel }) {
 
 // ── Form schema ───────────────────────────────────────────────────────────────
 const formSchema = z.object({
-  // Step 1
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(7, "Phone number is required"),
   avatarUrl: z.string().min(1, "Profile photo is required"),
   categoryIds: z.array(z.number()).min(1, "Select at least one category"),
-  // Step 2
   yearsExperience: z.coerce.number().min(0),
   bio: z.string().min(30, "Please describe your services (min 30 chars)"),
   languages: z.string().optional(),
   pastWorkReferences: z.string().optional(),
-  // Step 3
   backgroundCheckConsent: z.boolean().optional(),
   policeVerification: z.boolean().optional(),
   medicalFitnessDeclaration: z.boolean().optional(),
-  // Step 4
   certifications: z.string().optional(),
+  // ✅ Fix Issue 2: medicalNursingLicense included in schema (was missing from render)
   medicalNursingLicense: z.string().optional(),
   foodSafetyCertificate: z.boolean().optional(),
   insuranceLicense: z.string().optional(),
-  // Step 5
   location: z.string().min(3, "Location is required"),
   serviceRadius: z.string().optional(),
   onSiteRemote: z.string().optional(),
   availabilitySchedule: z.string().min(3, "Please describe your availability"),
-  // Step 6
   hourlyRate: z.coerce.number().min(10, "Minimum rate is $10"),
   pricingUnit: z.string().default("hourly"),
-  // Step 7
   termsAccepted: z.literal(true, { errorMap: () => ({ message: "You must accept the Terms of Service" }) }),
   codeOfConductAccepted: z.literal(true, { errorMap: () => ({ message: "You must accept the Code of Conduct" }) }),
   liabilityWaiverAccepted: z.boolean().optional(),
@@ -146,13 +134,13 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const STEPS = [
-  { id: 1, label: "Account", icon: User },
+  { id: 1, label: "Account",    icon: User },
   { id: 2, label: "Experience", icon: Briefcase },
-  { id: 3, label: "Safety", icon: ShieldCheck },
-  { id: 4, label: "Licenses", icon: Award },
-  { id: 5, label: "Logistics", icon: MapPin },
-  { id: 6, label: "Pricing", icon: DollarSign },
-  { id: 7, label: "Agreement", icon: FileCheck },
+  { id: 3, label: "Safety",     icon: ShieldCheck },
+  { id: 4, label: "Licenses",   icon: Award },
+  { id: 5, label: "Logistics",  icon: MapPin },
+  { id: 6, label: "Pricing",    icon: DollarSign },
+  { id: 7, label: "Agreement",  icon: FileCheck },
 ];
 
 export default function BecomeCaregiver() {
@@ -187,6 +175,8 @@ export default function BecomeCaregiver() {
   const [refEntries, setRefEntries] = useState<RefEntry[]>(EMPTY_REFS);
   const [complianceError, setComplianceError] = useState(false);
   const [step3Error, setStep3Error] = useState(false);
+  // ✅ Fix Issue 4: track which specific Step 3 fields failed
+  const [step3FieldErrors, setStep3FieldErrors] = useState<Record<string, boolean>>({});
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -207,11 +197,8 @@ export default function BecomeCaregiver() {
     ?.filter((c) => selectedCategoryIds.includes(c.id))
     .map((c) => c.slug) ?? [];
 
-  // Auto-fill location when geo detects
   useEffect(() => {
-    if (geo.location) {
-      form.setValue("location", geo.location);
-    }
+    if (geo.location) form.setValue("location", geo.location);
   }, [geo.location, form]);
 
   const stepFields: Record<number, (keyof FormValues)[]> = {
@@ -226,27 +213,40 @@ export default function BecomeCaregiver() {
 
   const validateStep = async (step: number) => {
     const fields = stepFields[step];
-    const result = await form.trigger(fields);
-    return result;
+    return await form.trigger(fields);
   };
 
   const handleNext = async () => {
+    // ✅ Fix Issue 4: per-field error tracking on Step 3
     if (currentStep === 3) {
       const vals = form.getValues();
-      const bgShown = getReqLevel("backgroundCheckConsent", selectedSlugs) !== "N";
-      const pvShown = getReqLevel("policeVerification", selectedSlugs) !== "N";
-      const mfShown = getReqLevel("medicalFitnessDeclaration", selectedSlugs) !== "N";
-      const anyShown = bgShown || pvShown || mfShown;
-      const allTicked =
-        (!bgShown || vals.backgroundCheckConsent) &&
-        (!pvShown || vals.policeVerification) &&
-        (!mfShown || vals.medicalFitnessDeclaration);
-      if (anyShown && !allTicked) {
-        setStep3Error(true);
-        return;
+      const bgShown   = getReqLevel("backgroundCheckConsent",    selectedSlugs) !== "N";
+      const pvShown   = getReqLevel("policeVerification",        selectedSlugs) !== "N";
+      const mfShown   = getReqLevel("medicalFitnessDeclaration", selectedSlugs) !== "N";
+
+      const fieldErrors: Record<string, boolean> = {};
+      let hasError = false;
+
+      if (bgShown && getReqLevel("backgroundCheckConsent", selectedSlugs) === "R" && !vals.backgroundCheckConsent) {
+        fieldErrors.backgroundCheckConsent = true;
+        hasError = true;
       }
+      if (pvShown && getReqLevel("policeVerification", selectedSlugs) === "R" && !vals.policeVerification) {
+        fieldErrors.policeVerification = true;
+        hasError = true;
+      }
+      if (mfShown && getReqLevel("medicalFitnessDeclaration", selectedSlugs) === "R" && !vals.medicalFitnessDeclaration) {
+        fieldErrors.medicalFitnessDeclaration = true;
+        hasError = true;
+      }
+
+      setStep3FieldErrors(fieldErrors);
+      setStep3Error(hasError);
+      if (hasError) return;
       setStep3Error(false);
+      setStep3FieldErrors({});
     }
+
     const valid = await validateStep(currentStep);
     if (valid) setCurrentStep((s) => Math.min(s + 1, 7));
   };
@@ -303,14 +303,14 @@ export default function BecomeCaregiver() {
           {STEPS.map((step, idx) => {
             const Icon = step.icon;
             const isComplete = currentStep > step.id;
-            const isCurrent = currentStep === step.id;
+            const isCurrent  = currentStep === step.id;
             return (
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex flex-col items-center gap-1">
                   <div className={cn(
                     "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all",
                     isComplete ? "bg-primary border-primary text-primary-foreground" :
-                    isCurrent ? "border-primary text-primary bg-primary/10" :
+                    isCurrent  ? "border-primary text-primary bg-primary/10" :
                     "border-border text-muted-foreground bg-background"
                   )}>
                     {isComplete ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
@@ -323,7 +323,10 @@ export default function BecomeCaregiver() {
                   </span>
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div className={cn("flex-1 h-0.5 mx-1 sm:mx-2 mt-0 sm:-mt-5 transition-colors", isComplete ? "bg-primary" : "bg-border")} />
+                  <div className={cn(
+                    "flex-1 h-0.5 mx-1 sm:mx-2 mt-0 sm:-mt-5 transition-colors",
+                    isComplete ? "bg-primary" : "bg-border"
+                  )} />
                 )}
               </div>
             );
@@ -347,6 +350,7 @@ export default function BecomeCaregiver() {
                "Compliance & Agreement"}
             </CardTitle>
           </CardHeader>
+
           <CardContent className="pt-6 px-6 md:px-10 pb-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -360,7 +364,7 @@ export default function BecomeCaregiver() {
                     className="space-y-6"
                   >
 
-                    {/* ── Step 1: Basic Account ─────────────────────────────── */}
+                    {/* ── Step 1: Basic Account ────────────────────────────── */}
                     {currentStep === 1 && (
                       <>
                         <div className="grid md:grid-cols-2 gap-5">
@@ -400,27 +404,18 @@ export default function BecomeCaregiver() {
                                   )}
                                 </div>
                                 <div className="flex flex-col gap-2 pt-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-full"
-                                    onClick={() => photoInputRef.current?.click()}
-                                  >
+                                  <Button type="button" variant="outline" size="sm" className="rounded-full"
+                                    onClick={() => photoInputRef.current?.click()}>
                                     {photoPreview ? "Change Photo" : "Upload Photo"}
                                   </Button>
                                   {photoPreview && (
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
+                                    <Button type="button" variant="ghost" size="sm"
                                       className="rounded-full text-destructive hover:text-destructive text-xs"
                                       onClick={() => {
                                         setPhotoPreview("");
                                         field.onChange("");
                                         if (photoInputRef.current) photoInputRef.current.value = "";
-                                      }}
-                                    >
+                                      }}>
                                       Remove
                                     </Button>
                                   )}
@@ -459,8 +454,12 @@ export default function BecomeCaregiver() {
 
                         <div className="space-y-2">
                           <div className="mb-3">
-                            <p className="text-base font-medium leading-none">Care Specialties <span className="text-red-500">*</span></p>
-                            <p className="text-sm text-muted-foreground mt-1">Select all categories where you offer professional services.</p>
+                            <p className="text-base font-medium leading-none">
+                              Care Specialties <span className="text-red-500">*</span>
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Select all categories where you offer professional services.
+                            </p>
                           </div>
                           <div className="grid sm:grid-cols-2 gap-2 bg-muted/20 p-4 rounded-xl border border-border/40">
                             {categories?.map((item) => (
@@ -470,11 +469,11 @@ export default function BecomeCaregiver() {
                                   checked={selectedCategoryIds?.includes(item.id)}
                                   onCheckedChange={(checked) => {
                                     const vals = form.getValues("categoryIds");
-                                    if (checked) {
-                                      form.setValue("categoryIds", [...vals, item.id], { shouldValidate: true });
-                                    } else {
-                                      form.setValue("categoryIds", vals.filter((v) => v !== item.id), { shouldValidate: true });
-                                    }
+                                    form.setValue(
+                                      "categoryIds",
+                                      checked ? [...vals, item.id] : vals.filter((v) => v !== item.id),
+                                      { shouldValidate: true }
+                                    );
                                   }}
                                 />
                                 <label htmlFor={`cat-${item.id}`} className="font-normal cursor-pointer text-sm leading-none">
@@ -492,7 +491,7 @@ export default function BecomeCaregiver() {
                       </>
                     )}
 
-                    {/* ── Step 2: Experience & Skills ────────────────────────── */}
+                    {/* ── Step 2: Experience & Skills ──────────────────────── */}
                     {currentStep === 2 && (
                       <>
                         <div className="grid md:grid-cols-2 gap-5">
@@ -503,13 +502,14 @@ export default function BecomeCaregiver() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                          {/* ── Indian Language Picker ─────────────────────── */}
                           <div className="col-span-2">
                             <div className="mb-2 flex items-center gap-2">
                               <span className="text-sm font-medium leading-none">Languages Spoken</span>
                               <ReqBadge level="O" />
                             </div>
-                            <p className="text-xs text-muted-foreground mb-3">Select all languages you can communicate in with families.</p>
+                            <p className="text-xs text-muted-foreground mb-3">
+                              Select all languages you can communicate in with families.
+                            </p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                               {[
                                 "Hindi", "English", "Punjabi", "Gujarati", "Marathi",
@@ -557,7 +557,11 @@ export default function BecomeCaregiver() {
                             <FormLabel>Service Description <span className="text-red-500">*</span></FormLabel>
                             <FormDescription>Describe your background, experience, and care approach.</FormDescription>
                             <FormControl>
-                              <Textarea placeholder="I have been working as a caregiver for over 5 years, specialising in..." className="min-h-[140px] resize-y" {...field} />
+                              <Textarea
+                                placeholder="I have been working as a caregiver for over 5 years, specialising in..."
+                                className="min-h-[140px] resize-y"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -570,11 +574,15 @@ export default function BecomeCaregiver() {
                                 Past Work References
                                 <ReqBadge level={getReqLevel("pastWorkReferences", selectedSlugs)} />
                               </p>
-                              <p className="text-xs text-muted-foreground">Add up to 3 references — people who can vouch for your caregiving work.</p>
+                              <p className="text-xs text-muted-foreground">
+                                Add up to 3 references — people who can vouch for your caregiving work.
+                              </p>
                             </div>
                             {refEntries.map((ref, idx) => (
                               <div key={idx} className="rounded-xl border border-border/50 bg-muted/10 p-4 space-y-3">
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Reference {idx + 1}</p>
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                  Reference {idx + 1}
+                                </p>
                                 <div className="grid sm:grid-cols-2 gap-3">
                                   <div className="space-y-1">
                                     <label className="text-xs font-medium">Full Name</label>
@@ -595,7 +603,10 @@ export default function BecomeCaregiver() {
                                 </div>
                                 <div className="space-y-1">
                                   <label className="text-xs font-medium">Relationship</label>
-                                  <Select value={ref.relationship} onValueChange={(v) => updateRef(idx, "relationship", v)}>
+                                  <Select
+                                    value={ref.relationship}
+                                    onValueChange={(v) => updateRef(idx, "relationship", v)}
+                                  >
                                     <SelectTrigger className="h-9 text-sm">
                                       <SelectValue placeholder="Select relationship…" />
                                     </SelectTrigger>
@@ -615,31 +626,50 @@ export default function BecomeCaregiver() {
                       </>
                     )}
 
-                    {/* ── Step 3: Background & Safety ────────────────────────── */}
+                    {/* ── Step 3: Background & Safety ─────────────────────── */}
                     {currentStep === 3 && (
                       <>
                         <p className="text-sm text-muted-foreground bg-muted/30 rounded-xl p-4 border border-border/40">
                           Safety checks ensure trust and security for the families you serve. Requirements vary by care category.
                         </p>
 
+                        {/* ✅ Fix Issue 4: banner only shows when at least one field failed */}
                         {step3Error && (
                           <div className="flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                             <span className="font-bold shrink-0">⚠</span>
                             <span>All required safety checks must be acknowledged before you can proceed.</span>
                           </div>
                         )}
+
                         {getReqLevel("backgroundCheckConsent", selectedSlugs) !== "N" && (
                           <FormField control={form.control} name="backgroundCheckConsent" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
+                            <FormItem className={cn(
+                              "flex flex-row items-start space-x-3 space-y-0 rounded-xl border p-4 bg-muted/10",
+                              // ✅ Fix Issue 4: highlight individual failed checkbox
+                              step3FieldErrors.backgroundCheckConsent
+                                ? "border-red-400 bg-red-50"
+                                : "border-border/50"
+                            )}>
                               <FormControl>
-                                <Checkbox checked={field.value ?? false} onCheckedChange={field.onChange} />
+                                <Checkbox
+                                  checked={field.value ?? false}
+                                  onCheckedChange={(v) => {
+                                    field.onChange(v);
+                                    if (v) setStep3FieldErrors(p => ({ ...p, backgroundCheckConsent: false }));
+                                  }}
+                                />
                               </FormControl>
                               <div className="space-y-1">
                                 <FormLabel className="cursor-pointer font-medium">
                                   Background Check Consent
                                   <ReqBadge level={getReqLevel("backgroundCheckConsent", selectedSlugs)} />
                                 </FormLabel>
-                                <FormDescription>I consent to a background check being conducted on my behalf.</FormDescription>
+                                <FormDescription>
+                                  I consent to a background check being conducted on my behalf.
+                                </FormDescription>
+                                {step3FieldErrors.backgroundCheckConsent && (
+                                  <p className="text-xs font-medium text-red-600">This consent is required to continue.</p>
+                                )}
                               </div>
                             </FormItem>
                           )} />
@@ -647,9 +677,20 @@ export default function BecomeCaregiver() {
 
                         {getReqLevel("policeVerification", selectedSlugs) !== "N" && (
                           <FormField control={form.control} name="policeVerification" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
+                            <FormItem className={cn(
+                              "flex flex-row items-start space-x-3 space-y-0 rounded-xl border p-4 bg-muted/10",
+                              step3FieldErrors.policeVerification
+                                ? "border-red-400 bg-red-50"
+                                : "border-border/50"
+                            )}>
                               <FormControl>
-                                <Checkbox checked={field.value ?? false} onCheckedChange={field.onChange} />
+                                <Checkbox
+                                  checked={field.value ?? false}
+                                  onCheckedChange={(v) => {
+                                    field.onChange(v);
+                                    if (v) setStep3FieldErrors(p => ({ ...p, policeVerification: false }));
+                                  }}
+                                />
                               </FormControl>
                               <div className="space-y-1">
                                 <FormLabel className="cursor-pointer font-medium">
@@ -659,7 +700,7 @@ export default function BecomeCaregiver() {
                                 <FormDescription>
                                   I confirm that I will submit or have submitted a police clearance certificate (PCC).{" "}
                                   <a
-                                    href="https://www2.policesolutions.ca/checks/services/toronto3/index.php?utm_source=chatgpt.com"
+                                    href="[www2.policesolutions.ca](https://www2.policesolutions.ca/checks/services/toronto3/index.php)"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-primary underline underline-offset-2 hover:text-primary/80"
@@ -667,6 +708,9 @@ export default function BecomeCaregiver() {
                                     How to obtain a PCC →
                                   </a>
                                 </FormDescription>
+                                {step3FieldErrors.policeVerification && (
+                                  <p className="text-xs font-medium text-red-600">Police verification consent is required.</p>
+                                )}
                               </div>
                             </FormItem>
                           )} />
@@ -674,24 +718,40 @@ export default function BecomeCaregiver() {
 
                         {getReqLevel("medicalFitnessDeclaration", selectedSlugs) !== "N" && (
                           <FormField control={form.control} name="medicalFitnessDeclaration" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-muted/10">
+                            <FormItem className={cn(
+                              "flex flex-row items-start space-x-3 space-y-0 rounded-xl border p-4 bg-muted/10",
+                              step3FieldErrors.medicalFitnessDeclaration
+                                ? "border-red-400 bg-red-50"
+                                : "border-border/50"
+                            )}>
                               <FormControl>
-                                <Checkbox checked={field.value ?? false} onCheckedChange={field.onChange} />
+                                <Checkbox
+                                  checked={field.value ?? false}
+                                  onCheckedChange={(v) => {
+                                    field.onChange(v);
+                                    if (v) setStep3FieldErrors(p => ({ ...p, medicalFitnessDeclaration: false }));
+                                  }}
+                                />
                               </FormControl>
                               <div className="space-y-1">
                                 <FormLabel className="cursor-pointer font-medium">
                                   Medical Fitness Declaration
                                   <ReqBadge level={getReqLevel("medicalFitnessDeclaration", selectedSlugs)} />
                                 </FormLabel>
-                                <FormDescription>I declare that I am medically fit to perform caregiving duties.</FormDescription>
+                                <FormDescription>
+                                  I declare that I am medically fit to perform caregiving duties.
+                                </FormDescription>
+                                {step3FieldErrors.medicalFitnessDeclaration && (
+                                  <p className="text-xs font-medium text-red-600">Medical fitness declaration is required.</p>
+                                )}
                               </div>
                             </FormItem>
                           )} />
                         )}
 
                         {getReqLevel("backgroundCheckConsent", selectedSlugs) === "N" &&
-                          getReqLevel("policeVerification", selectedSlugs) === "N" &&
-                          getReqLevel("medicalFitnessDeclaration", selectedSlugs) === "N" && (
+                         getReqLevel("policeVerification", selectedSlugs) === "N" &&
+                         getReqLevel("medicalFitnessDeclaration", selectedSlugs) === "N" && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
                             No safety checks are required for your selected care categories.
                           </div>
@@ -699,7 +759,7 @@ export default function BecomeCaregiver() {
                       </>
                     )}
 
-                    {/* ── Step 4: Certifications & Licenses ──────────────────── */}
+                    {/* ── Step 4: Certifications & Licenses ───────────────── */}
                     {currentStep === 4 && (
                       <>
                         {getReqLevel("certifications", selectedSlugs) !== "N" && (
@@ -709,10 +769,31 @@ export default function BecomeCaregiver() {
                                 Professional Certifications
                                 <ReqBadge level={getReqLevel("certifications", selectedSlugs)} />
                               </FormLabel>
-                              <FormDescription>List relevant certifications (e.g., CPR, First Aid, CNA).</FormDescription>
+                              <FormDescription>
+                                List relevant certifications (e.g., CPR, First Aid, CNA).
+                              </FormDescription>
                               <FormControl>
                                 <Textarea placeholder="CPR Certified (2024), First Aid Training, ..." rows={3} {...field} />
                               </FormControl>
+                            </FormItem>
+                          )} />
+                        )}
+
+                        {/* ✅ Fix Issue 2: medicalNursingLicense field now rendered */}
+                        {getReqLevel("medicalNursingLicense", selectedSlugs) !== "N" && (
+                          <FormField control={form.control} name="medicalNursingLicense" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Medical / Nursing License Number
+                                <ReqBadge level={getReqLevel("medicalNursingLicense", selectedSlugs)} />
+                              </FormLabel>
+                              <FormDescription>
+                                Enter your state-issued nursing or medical license number if applicable.
+                              </FormDescription>
+                              <FormControl>
+                                <Input placeholder="e.g. RN-123456 or NP-987654" {...field} />
+                              </FormControl>
+                              <FormMessage />
                             </FormItem>
                           )} />
                         )}
@@ -728,7 +809,9 @@ export default function BecomeCaregiver() {
                                   Food Safety Certificate
                                   <ReqBadge level={getReqLevel("foodSafetyCertificate", selectedSlugs)} />
                                 </FormLabel>
-                                <FormDescription>I hold a valid food safety or food handler's certificate.</FormDescription>
+                                <FormDescription>
+                                  I hold a valid food safety or food handler's certificate.
+                                </FormDescription>
                               </div>
                             </FormItem>
                           )} />
@@ -747,8 +830,9 @@ export default function BecomeCaregiver() {
                         )}
 
                         {getReqLevel("certifications", selectedSlugs) === "N" &&
-                          getReqLevel("foodSafetyCertificate", selectedSlugs) === "N" &&
-                          getReqLevel("insuranceLicense", selectedSlugs) === "N" && (
+                         getReqLevel("medicalNursingLicense", selectedSlugs) === "N" &&
+                         getReqLevel("foodSafetyCertificate", selectedSlugs) === "N" &&
+                         getReqLevel("insuranceLicense", selectedSlugs) === "N" && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
                             No licenses are required for your selected care categories.
                           </div>
@@ -756,7 +840,7 @@ export default function BecomeCaregiver() {
                       </>
                     )}
 
-                    {/* ── Step 5: Service Logistics ───────────────────────────── */}
+                    {/* ── Step 5: Service Logistics ────────────────────────── */}
                     {currentStep === 5 && (
                       <>
                         <FormField control={form.control} name="location" render={({ field }) => (
@@ -770,15 +854,16 @@ export default function BecomeCaregiver() {
                                   <Input placeholder="City, State" className="pl-9" {...field} />
                                 </div>
                                 <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
+                                  type="button" variant="outline" size="icon"
                                   className="shrink-0 h-10 w-10"
                                   onClick={geo.detectLocation}
                                   disabled={geo.isDetecting}
                                   title="Detect my location"
                                 >
-                                  {geo.isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                                  {geo.isDetecting
+                                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                                    : <LocateFixed className="h-4 w-4" />
+                                  }
                                 </Button>
                               </div>
                             </FormControl>
@@ -794,7 +879,6 @@ export default function BecomeCaregiver() {
                               <FormControl><Input placeholder="e.g. 10 miles, 20 km" {...field} /></FormControl>
                             </FormItem>
                           )} />
-
                           <FormField control={form.control} name="onSiteRemote" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Work Setting <ReqBadge level="O" /></FormLabel>
@@ -825,7 +909,7 @@ export default function BecomeCaregiver() {
                       </>
                     )}
 
-                    {/* ── Step 6: Pricing & Payment ───────────────────────────── */}
+                    {/* ── Step 6: Pricing & Payment ────────────────────────── */}
                     {currentStep === 6 && (
                       <>
                         <div className="grid md:grid-cols-2 gap-5">
@@ -841,7 +925,6 @@ export default function BecomeCaregiver() {
                               <FormMessage />
                             </FormItem>
                           )} />
-
                           <FormField control={form.control} name="pricingUnit" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Pricing Unit <span className="text-red-500">*</span></FormLabel>
@@ -860,14 +943,13 @@ export default function BecomeCaregiver() {
                             </FormItem>
                           )} />
                         </div>
-
                         <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300">
-                          Bank account details for payouts will be collected securely after your profile is approved. Care Bridge uses encrypted banking connections.
+                          Bank account details for payouts will be collected securely after your profile is approved.
                         </div>
                       </>
                     )}
 
-                    {/* ── Step 7: Compliance & Agreement ─────────────────────── */}
+                    {/* ── Step 7: Compliance & Agreement ──────────────────── */}
                     {currentStep === 7 && (
                       <>
                         <p className="text-sm text-muted-foreground">
@@ -886,7 +968,10 @@ export default function BecomeCaregiver() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value === true}
-                                onCheckedChange={(v) => field.onChange(v === true ? true : undefined)}
+                                onCheckedChange={(v) => {
+                                  field.onChange(v === true ? true : undefined);
+                                  if (v) setComplianceError(false);
+                                }}
                               />
                             </FormControl>
                             <div className="space-y-1">
@@ -906,7 +991,10 @@ export default function BecomeCaregiver() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value === true}
-                                onCheckedChange={(v) => field.onChange(v === true ? true : undefined)}
+                                onCheckedChange={(v) => {
+                                  field.onChange(v === true ? true : undefined);
+                                  if (v) setComplianceError(false);
+                                }}
                               />
                             </FormControl>
                             <div className="space-y-1">
@@ -941,10 +1029,11 @@ export default function BecomeCaregiver() {
                         )}
                       </>
                     )}
+
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Navigation Buttons */}
+                {/* Navigation */}
                 <div className="flex gap-3 mt-8 pt-6 border-t border-border/40">
                   {currentStep > 1 && (
                     <Button type="button" variant="outline" onClick={handleBack} className="flex-1 sm:flex-none">
@@ -957,9 +1046,12 @@ export default function BecomeCaregiver() {
                       Continue <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   ) : (
-                    <Button type="button" size="lg" className="flex-1 sm:flex-none rounded-full h-12 shadow-md"
+                    <Button
+                      type="button" size="lg"
+                      className="flex-1 sm:flex-none rounded-full h-12 shadow-md"
                       disabled={createCaregiver.isPending}
-                      onClick={handleSubmitWithComplianceCheck}>
+                      onClick={handleSubmitWithComplianceCheck}
+                    >
                       {createCaregiver.isPending ? "Submitting..." : "Submit Application"}
                     </Button>
                   )}

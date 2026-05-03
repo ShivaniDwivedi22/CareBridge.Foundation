@@ -1,4 +1,4 @@
-import { useListConversations, getListConversationsQueryKey } from "@workspace/api-client-react";
+import { useListConversations, getListConversationsQueryKey } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";

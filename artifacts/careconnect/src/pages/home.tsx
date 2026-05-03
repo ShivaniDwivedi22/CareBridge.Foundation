@@ -1,4 +1,5 @@
-import { useListCategories, useListCaregivers, useListCareRequests } from "@workspace/api-client-react";
+//import { useListCategories, useListCaregivers, useListCareRequests } from "@/hooks/api-hooks";
+import { useListCategories, useListCaregivers, useListCareRequests } from "@/hooks/api-hooks";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -278,8 +279,13 @@ export default function Home() {
                           <div className="absolute inset-0 bg-primary/10 group-hover:bg-primary/5 transition-colors" />
                         </div>
                         <div className="px-3 py-3 bg-card border-t border-border/30">
-                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors">{category.name}</h3>
-                          <p className="text-muted-foreground text-xs mt-0.5">{category.caregiverCount} professionals</p>
+                          <h3 className="font-bold text-foreground text-sm leading-snug group-hover:text-primary transition-colors">
+                            {category.name}
+                          </h3>
+                          {/* safe fallback if caregiverCount is undefined */}
+                          <p className="text-muted-foreground text-xs mt-0.5">
+                            {category.caregiverCount ?? 0} professionals
+                          </p>
                         </div>
                       </div>
                     </Link>
@@ -480,7 +486,7 @@ export default function Home() {
                       </p>
                       <div className="flex items-center justify-between pt-4 border-t border-border/40">
                         <span className="text-xs text-muted-foreground">
-                          Posted by {request.seekerName}
+                          Posted by {request.seekerName ?? request.seeker?.name ?? "a family"}
                         </span>
                         <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary hover:bg-primary/10">
                           <Link href={`/care-requests/${request.id}`}>View Details <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>

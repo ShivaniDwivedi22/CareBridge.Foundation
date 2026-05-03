@@ -1,9 +1,14 @@
 /**
- * Resolve an API endpoint path.
- * All API calls use the same origin (via Replit's path-based proxy),
- * so this is simply an identity function for the path.
- * Kept as a utility so it can be adapted if the base URL changes.
+ * Resolve an API endpoint path with proper base URL handling for Vercel.
  */
 export function apiUrl(path: string): string {
+  // In production, use the API_URL environment variable
+  const base = import.meta.env.VITE_API_URL;
+  if (base) {
+    return `${base.replace(/\/$/, '')}${path}`;
+  }
+  
+  // Fallback for development or same-origin setup
   return path;
 }
+
