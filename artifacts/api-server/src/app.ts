@@ -15,10 +15,10 @@ const corsOptions: cors.CorsOptions = {
     if (!origin) return callback(null, true);
     if (
       origin.endsWith(".vercel.app") ||
-      origin === "[carebridge.foundation](https://www.carebridge.foundation)" ||
-      origin === "[carebridge.foundation](https://carebridge.foundation)" ||
-      origin === "[localhost](http://localhost:5173)" ||
-      origin === "[localhost](http://localhost:3000)"
+      origin === "https://www.carebridge.foundation" ||
+      origin === "https://carebridge.foundation" ||
+      origin === "http://localhost:5173" ||
+      origin === "http://localhost:3000"
     ) {
       return callback(null, true);
     }
@@ -29,7 +29,7 @@ const corsOptions: cors.CorsOptions = {
 };
 
 // ✅ Handle preflight before anything else
-app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions));
 
 // Stripe webhook needs raw body — before express.json()
 app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
