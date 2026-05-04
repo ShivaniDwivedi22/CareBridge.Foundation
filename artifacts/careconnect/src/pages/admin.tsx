@@ -622,6 +622,7 @@ export default function AdminPanel() {
   const [rejectReason, setRejectReason] = useState("");
   const [viewCaregiver, setViewCaregiver] = useState<any>(null);
   const [editCaregiver, setEditCaregiver] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const sendCaregiverMessage = async (caregiverClerkId: string, message: string) => {
     try {
