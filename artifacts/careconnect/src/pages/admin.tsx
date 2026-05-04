@@ -602,6 +602,81 @@ function StatsDashboard({ onNavigate }: { onNavigate: (tab: string) => void }) {
   );
 }
 
+function ContactSubmissionsPanel() {
+  const { toast } = useToast();
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<number | null>(null);
+  const load = () => {
+    setLoading(true);
+    fetch(apiUrl("/api/admin/contact-submissions"))
+      .then((r) => r.json())
+      .then((d) => { setSubmissions(Array.isArray(d) ? d : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+  const updateStatus = async (id: number, status: string) => {
+    setUpdating(id);
+    try {
+      const resp = await fetch(apiUrl(`/api/admin/contact-submissions/${id}/status`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!resp.ok) throw new Error("Failed");
+      toast({ title: `Marked as ${status}` });
+      load();
+    } catch { toast({ title: "Update failed", variant: "destructive" }); }
+    finally { setUpdating(null); }
+  };
+  if (loading) return <div className="p-6 space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>;
+  if (submissions.length === 0) return (
+    <div className="p-10 text-center text-muted-foreground">
+      <MessageSquare className="w-10 h-10 mx-auto mb-3 text-muted-foreground/20" />
+      No contact submissions yet.
+    </div>
+  );
+  const statusColors: Record<string, string> = {
+    new: "bg-blue-100 text-blue-700 border-blue-300",
+    read: "bg-yellow-100 text-yellow-700 border-yellow-300",
+    replied: "bg-green-100 text-green-700 border-green-300",
+    archived: "bg-gray-100 text-gray-600 border-gray-300",
+  };
+  return (
+    <div className="divide-y divide-border/40">
+      {submissions.map((s) => (
+        <div key={s.id} className="p-5 space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold">{s.subject}</span>
+                <Badge className={statusColors[s.status] ?? statusColors.new}>{s.status}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{s.name} · {s.email}</p>
+              <p className="text-sm mt-2 whitespace-pre-wrap bg-muted/20 rounded p-3 border border-border/30">{s.message}</p>
+              <p className="text-xs text-muted-foreground mt-1">{new Date(s.created_at).toLocaleString()}</p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {s.status === "new" && (
+                <Button size="sm" variant="outline" className="h-7 text-xs" disabled={updating === s.id}
+                  onClick={() => updateStatus(s.id, "read")}>Mark Read</Button>
+              )}
+              {(s.status === "new" || s.status === "read") && (
+                <Button size="sm" variant="outline" className="h-7 text-xs text-green-600" disabled={updating === s.id}
+                  onClick={() => updateStatus(s.id, "replied")}>Replied</Button>
+              )}
+              {s.status !== "archived" && (
+                <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" disabled={updating === s.id}
+                  onClick={() => updateStatus(s.id, "archived")}>Archive</Button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -777,6 +852,9 @@ export default function AdminPanel() {
       const [activeTab, setActiveTab] = useState("dashboard");
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 flex-wrap gap-1">
+          <TabsTrigger value="contact">
+            <MessageSquare className="w-3.5 h-3.5 mr-1" /> Contact
+          </TabsTrigger>
           <TabsTrigger value="dashboard">
             <BarChart2 className="w-3.5 h-3.5 mr-1" /> Dashboard
           </TabsTrigger>
@@ -825,6 +903,16 @@ export default function AdminPanel() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="contact">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <CardTitle>Contact Submissions</CardTitle>
+              <CardDescription>Messages from the contact form on the website.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0"><ContactSubmissionsPanel /></CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="verified">
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="border-b border-border/40 bg-muted/20">
