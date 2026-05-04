@@ -253,22 +253,30 @@ export default function BecomeCaregiver() {
 
   const handleBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
+  function onSubmit(data: FormValues) {
+    setComplianceError(false);
+    const payload = { ...data, clerkId: user?.id };
+    createCaregiver.mutate({ data: payload as any }, {
+      onSuccess: (result) => {
+        toast({
+          title: "Welcome to Care Bridge!",
+          description: "Your profile is under review and will be activated shortly.",
+        });
+        setLocation(`/caregivers/${result.id}`);
+      },
       onError: (err: any) => {
-        // ApiError shape from customFetch: { status, data, message }
         const status = err?.status ?? err?.response?.status;
-        const data = err?.data ?? err?.response?.data ?? {};
-        const code = data?.code;
-        const serverMsg = data?.error || data?.message || err?.message;
-        const issues: Array<{ field: string; message: string }> = data?.issues ?? [];
+        const errData = err?.data ?? err?.response?.data ?? {};
+        const code = errData?.code;
+        const serverMsg = errData?.error || errData?.message || err?.message;
+        const issues: Array<{ field: string; message: string }> = errData?.issues ?? [];
 
-        // Highlight failing fields in the form
         if (issues.length > 0) {
           issues.forEach((i) => {
             try {
               form.setError(i.field as any, { type: "server", message: i.message });
             } catch {}
           });
-          // Try to jump back to the step containing the first invalid field
           const firstField = issues[0]?.field;
           const fieldStepMap: Record<string, number> = {
             name: 1, phone: 1, location: 1,
@@ -282,7 +290,6 @@ export default function BecomeCaregiver() {
           if (firstField && fieldStepMap[firstField]) setCurrentStep(fieldStepMap[firstField]);
         }
 
-        // User-friendly title based on status / code
         let title = "Registration Error";
         if (status === 409) title = code === "DUPLICATE_PHONE" ? "Phone already registered" : "Already registered";
         else if (status === 400) title = "Please review your application";
@@ -295,12 +302,10 @@ export default function BecomeCaregiver() {
             : "Failed to create profile. Please try again.");
 
         toast({ title, description, variant: "destructive", duration: 8000 });
-
-        // Helpful console log for you while debugging
-        console.error("[become-caregiver] submit failed", { status, code, data, err });
+        console.error("[become-caregiver] submit failed", { status, code, errData, err });
       },
-        
-
+    });
+  }
   const handleSubmitWithComplianceCheck = () => {
     const vals = form.getValues();
     const liabilityRequired = getReqLevel("liabilityWaiverAccepted", selectedSlugs) !== "N";
