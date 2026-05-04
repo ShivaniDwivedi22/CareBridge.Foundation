@@ -94,9 +94,9 @@ function Router() {
         <Route path="/care-requests" component={CareRequests} />
         <Route path="/care-requests/:id" component={CareRequestDetail} />
         <Route path="/post-request">
-        <Route path="/contact" component={ContactPage} />
           {() => <Protected component={PostRequest} />}
         </Route>
+        <Route path="/contact" component={ContactPage} />
         <Route path="/become-caregiver">
           {() => <Protected component={BecomeCaregiver} />}
         </Route>
