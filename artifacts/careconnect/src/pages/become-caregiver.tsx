@@ -257,12 +257,13 @@ export default function BecomeCaregiver() {
     setComplianceError(false);
     const payload = { ...data, clerkId: user?.id };
     createCaregiver.mutate({ data: payload as any }, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         toast({
-          title: "Welcome to Care Bridge!",
-          description: "Your profile is under review and will be activated shortly.",
+          title: "Application Submitted!",
+          description: "Your profile is under review. We'll notify you once an admin approves it. This usually takes 1–2 business days.",
+          duration: 10000,
         });
-        setLocation(`/caregivers/${result.id}`);
+        setLocation("/dashboard");
       },
       onError: (err: any) => {
         const status = err?.status ?? err?.response?.status;
