@@ -537,7 +537,7 @@ function AuditLogPanel() {
 }
 
 // ── Enhanced Stats Dashboard ──────────────────────────────────────────────────
-function StatsDashboard() {
+function StatsDashboard({ onNavigate }: { onNavigate: (tab: string) => void }) {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -552,22 +552,22 @@ function StatsDashboard() {
   if (!stats) return <div className="p-10 text-center text-muted-foreground">Failed to load stats.</div>;
 
   const cards = [
-    { label: "Total Caregivers", value: stats.totalCaregivers, icon: <Users className="w-5 h-5" />, bg: "bg-primary/5", ic: "bg-primary/20 text-primary" },
-    { label: "Pending Approval", value: stats.pendingCaregivers, icon: <ShieldCheck className="w-5 h-5" />, bg: "bg-yellow-50", ic: "bg-yellow-200 text-yellow-700" },
-    { label: "Verified", value: stats.verifiedCaregivers, icon: <CheckCircle className="w-5 h-5" />, bg: "bg-green-50", ic: "bg-green-200 text-green-700" },
-    { label: "New (30d)", value: stats.recentSignups, icon: <UserCog className="w-5 h-5" />, bg: "bg-indigo-50", ic: "bg-indigo-200 text-indigo-700" },
-    { label: "Open Requests", value: stats.openRequests, icon: <FolderOpen className="w-5 h-5" />, bg: "bg-orange-50", ic: "bg-orange-200 text-orange-700" },
-    { label: "Active Bookings", value: stats.activeBookings, icon: <BookOpen className="w-5 h-5" />, bg: "bg-blue-50", ic: "bg-blue-200 text-blue-700" },
-    { label: "Completed Bookings", value: stats.completedBookings, icon: <CheckCircle className="w-5 h-5" />, bg: "bg-teal-50", ic: "bg-teal-200 text-teal-700" },
-    { label: "Total Revenue", value: fmt(stats.totalRevenueCents ?? 0), icon: <DollarSign className="w-5 h-5" />, bg: "bg-emerald-50", ic: "bg-emerald-200 text-emerald-700" },
-    { label: "Platform Fees", value: fmt(stats.platformFeeCents ?? 0), icon: <Banknote className="w-5 h-5" />, bg: "bg-rose-50", ic: "bg-rose-200 text-rose-700" },
+    { label: "Total Caregivers", value: stats.totalCaregivers, icon: <Users className="w-5 h-5" />, bg: "bg-primary/5", ic: "bg-primary/20 text-primary", tab: "verified" },
+    { label: "Pending Approval", value: stats.pendingCaregivers, icon: <ShieldCheck className="w-5 h-5" />, bg: "bg-yellow-50", ic: "bg-yellow-200 text-yellow-700", tab: "pending" },
+    { label: "Verified", value: stats.verifiedCaregivers, icon: <CheckCircle className="w-5 h-5" />, bg: "bg-green-50", ic: "bg-green-200 text-green-700", tab: "verified" },
+    { label: "New (30d)", value: stats.recentSignups, icon: <UserCog className="w-5 h-5" />, bg: "bg-indigo-50", ic: "bg-indigo-200 text-indigo-700", tab: "pending" },
+    { label: "Open Requests", value: stats.openRequests, icon: <FolderOpen className="w-5 h-5" />, bg: "bg-orange-50", ic: "bg-orange-200 text-orange-700", tab: "care-requests" },
+    { label: "Active Bookings", value: stats.activeBookings, icon: <BookOpen className="w-5 h-5" />, bg: "bg-blue-50", ic: "bg-blue-200 text-blue-700", tab: "care-requests" },
+    { label: "Completed Bookings", value: stats.completedBookings, icon: <CheckCircle className="w-5 h-5" />, bg: "bg-teal-50", ic: "bg-teal-200 text-teal-700", tab: "care-requests" },
+    { label: "Total Revenue", value: fmt(stats.totalRevenueCents ?? 0), icon: <DollarSign className="w-5 h-5" />, bg: "bg-emerald-50", ic: "bg-emerald-200 text-emerald-700", tab: "refunds" },
+    { label: "Platform Fees", value: fmt(stats.platformFeeCents ?? 0), icon: <Banknote className="w-5 h-5" />, bg: "bg-rose-50", ic: "bg-rose-200 text-rose-700", tab: "refunds" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {cards.map(c => (
-          <Card key={c.label} className={`${c.bg} border-border/50`}>
+          <Card key={c.label} className={`${c.bg} border-border/50 cursor-pointer hover:shadow-md transition-shadow`} onClick={() => onNavigate(c.tab)}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`p-2.5 rounded-xl shrink-0 ${c.ic}`}>{c.icon}</div>
               <div>
