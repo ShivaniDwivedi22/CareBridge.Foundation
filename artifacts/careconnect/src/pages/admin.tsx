@@ -773,7 +773,8 @@ export default function AdminPanel() {
         <p className="text-muted-foreground">Manage caregivers, care requests, reviews, and platform activity.</p>
       </div>
 
-      <Tabs defaultValue="dashboard">
+      const [activeTab, setActiveTab] = useState("dashboard");
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 flex-wrap gap-1">
           <TabsTrigger value="dashboard">
             <BarChart2 className="w-3.5 h-3.5 mr-1" /> Dashboard
@@ -803,7 +804,7 @@ export default function AdminPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard"><StatsDashboard /></TabsContent>
+        <TabsContent value="dashboard"><StatsDashboard onNavigate={setActiveTab} /></TabsContent>
 
         <TabsContent value="pending">
           <Card className="border-border/50 shadow-sm">
