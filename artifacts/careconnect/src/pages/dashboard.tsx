@@ -591,18 +591,20 @@ export default function Dashboard() {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { label: "Care Requests", value: stats?.totalCareRequests, loading: isLoadingStats },
-                    { label: "Open Jobs",     value: stats?.openRequests,      loading: isLoadingStats },
-                    { label: "Caregivers",    value: stats?.totalCaregivers,   loading: isLoadingStats },
-                    { label: "Bookings",      value: stats?.totalBookings,     loading: isLoadingStats },
+                    { label: "Care Requests", value: stats?.totalCareRequests, loading: isLoadingStats, href: "/care-requests" },
+                    { label: "Open Jobs",     value: stats?.openRequests,      loading: isLoadingStats, href: "/care-requests?status=open" },
+                    { label: "Caregivers",    value: stats?.totalCaregivers,   loading: isLoadingStats, href: "/caregivers" },
+                    { label: "Bookings",      value: stats?.totalBookings,     loading: isLoadingStats, href: "/bookings" },
                   ].map(item => (
-                    <div key={item.label} className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground text-xs">{item.label}</span>
-                      {item.loading
-                        ? <Skeleton className="h-4 w-8" />
-                        : <span className="font-semibold tabular-nums text-sm">{item.value ?? 0}</span>
-                      }
-                    </div>
+                    <Link key={item.label} href={item.href} className="flex items-center justify-between text-sm group hover:bg-muted/40 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+                      <span className="text-muted-foreground text-xs group-hover:text-primary transition-colors">{item.label}</span>
+                      {item.loading ? <Skeleton className="h-4 w-8" /> : (
+                        <span className="font-semibold tabular-nums text-sm flex items-center gap-1">
+                          {item.value ?? 0}
+                          <ChevronRight className="w-3 h-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                        </span>
+                      )}
+                    </Link>
                   ))}
                 </div>
                 <div className="mt-4 pt-3 border-t border-border/30 space-y-2">
