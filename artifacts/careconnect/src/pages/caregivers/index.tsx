@@ -171,7 +171,7 @@ export default function Caregivers() {
                 <CardContent className="flex-1 space-y-4">
                   <div className="flex flex-wrap gap-1.5">
                     {caregiver.categories?.slice(0, 2).map(cat => (
-                      <Badge key={cat.id} variant="secondary" className="bg-secondary/10 text-secondary-foreground font-normal text-xs">
+                      <Badge key={cat.id} variant="secondary" className="bg-primary/10 text-primary font-medium text-xs">
                         {cat.name}
                       </Badge>
                     ))}
