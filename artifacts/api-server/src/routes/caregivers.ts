@@ -42,7 +42,7 @@ router.get("/caregivers", async (req, res): Promise<void> => {
     conditions.push(gte(caregiversTable.rating, minRating));
   }
 
-  let caregivers = await query;
+  let caregivers = (await query).filter((c) => c.isVerified);
 
   if (category) {
     const cat = await db.select().from(categoriesTable).where(eq(categoriesTable.slug, category));
