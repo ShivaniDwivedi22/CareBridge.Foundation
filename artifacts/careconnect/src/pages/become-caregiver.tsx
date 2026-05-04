@@ -257,20 +257,56 @@ export default function BecomeCaregiver() {
     setComplianceError(false);
     const payload = { ...data, clerkId: user?.id };
     createCaregiver.mutate({ data: payload as any }, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         toast({
-          title: "Welcome to Care Bridge!",
-          description: "Your profile is under review and will be activated shortly.",
+          title: "Application Submitted!",
+          description: "Your profile is under review. We'll notify you once an admin approves it. This usually takes 1–2 business days.",
+          duration: 10000,
         });
-        setLocation(`/caregivers/${result.id}`);
+        setLocation("/dashboard");
       },
       onError: (err: any) => {
-        const msg = err?.response?.data?.error ?? "Failed to create profile. Please try again.";
-        toast({ title: "Registration Error", description: msg, variant: "destructive" });
+        const status = err?.status ?? err?.response?.status;
+        const errData = err?.data ?? err?.response?.data ?? {};
+        const code = errData?.code;
+        const serverMsg = errData?.error || errData?.message || err?.message;
+        const issues: Array<{ field: string; message: string }> = errData?.issues ?? [];
+
+        if (issues.length > 0) {
+          issues.forEach((i) => {
+            try {
+              form.setError(i.field as any, { type: "server", message: i.message });
+            } catch {}
+          });
+          const firstField = issues[0]?.field;
+          const fieldStepMap: Record<string, number> = {
+            name: 1, phone: 1, location: 1,
+            yearsExperience: 2, categoryIds: 2, languages: 2, services: 2, bio: 2,
+            backgroundCheckConsent: 3, policeVerification: 3, medicalFitnessDeclaration: 3,
+            certifications: 4, medicalNursingLicense: 4, foodSafetyCertificate: 4, insuranceLicense: 4,
+            serviceRadius: 5, onSiteRemote: 5, availabilitySchedule: 5,
+            hourlyRate: 6, pricingUnit: 6,
+            termsAccepted: 7, codeOfConductAccepted: 7, liabilityWaiverAccepted: 7,
+          };
+          if (firstField && fieldStepMap[firstField]) setCurrentStep(fieldStepMap[firstField]);
+        }
+
+        let title = "Registration Error";
+        if (status === 409) title = code === "DUPLICATE_PHONE" ? "Phone already registered" : "Already registered";
+        else if (status === 400) title = "Please review your application";
+        else if (status >= 500) title = "Server error";
+
+        const description = serverMsg
+          || (status === 409 ? "This account or phone number is already in use."
+            : status === 400 ? "Some fields need attention — they're highlighted in red."
+            : status >= 500 ? "Something went wrong on our end. Please try again in a moment."
+            : "Failed to create profile. Please try again.");
+
+        toast({ title, description, variant: "destructive", duration: 8000 });
+        console.error("[become-caregiver] submit failed", { status, code, errData, err });
       },
     });
   }
-
   const handleSubmitWithComplianceCheck = () => {
     const vals = form.getValues();
     const liabilityRequired = getReqLevel("liabilityWaiverAccepted", selectedSlugs) !== "N";
@@ -435,11 +471,22 @@ export default function BecomeCaregiver() {
                                   toast({ title: "File too large", description: "Please choose an image under 2 MB.", variant: "destructive" });
                                   return;
                                 }
+                                const img = new Image();
                                 const reader = new FileReader();
                                 reader.onload = (ev) => {
-                                  const dataUrl = ev.target?.result as string;
-                                  setPhotoPreview(dataUrl);
-                                  field.onChange(dataUrl);
+                                  img.onload = () => {
+                                    const MAX = 300;
+                                    let w = img.width, h = img.height;
+                                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                                    else { w = Math.round(w * MAX / h); h = MAX; }
+                                    const canvas = document.createElement("canvas");
+                                    canvas.width = w; canvas.height = h;
+                                    canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+                                    const compressed = canvas.toDataURL("image/jpeg", 0.7);
+                                    setPhotoPreview(compressed);
+                                    field.onChange(compressed);
+                                  };
+                                  img.src = ev.target?.result as string;
                                 };
                                 reader.readAsDataURL(file);
                               }}

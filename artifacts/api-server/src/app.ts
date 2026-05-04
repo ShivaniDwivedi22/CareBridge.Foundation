@@ -50,7 +50,7 @@ app.use(
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(clerkMiddleware());
 app.use("/api", router);
