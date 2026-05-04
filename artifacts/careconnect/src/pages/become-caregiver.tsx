@@ -470,11 +470,22 @@ export default function BecomeCaregiver() {
                                   toast({ title: "File too large", description: "Please choose an image under 2 MB.", variant: "destructive" });
                                   return;
                                 }
+                                const img = new Image();
                                 const reader = new FileReader();
                                 reader.onload = (ev) => {
-                                  const dataUrl = ev.target?.result as string;
-                                  setPhotoPreview(dataUrl);
-                                  field.onChange(dataUrl);
+                                  img.onload = () => {
+                                    const MAX = 300;
+                                    let w = img.width, h = img.height;
+                                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                                    else { w = Math.round(w * MAX / h); h = MAX; }
+                                    const canvas = document.createElement("canvas");
+                                    canvas.width = w; canvas.height = h;
+                                    canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+                                    const compressed = canvas.toDataURL("image/jpeg", 0.7);
+                                    setPhotoPreview(compressed);
+                                    field.onChange(compressed);
+                                  };
+                                  img.src = ev.target?.result as string;
                                 };
                                 reader.readAsDataURL(file);
                               }}
