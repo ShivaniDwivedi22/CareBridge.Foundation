@@ -65,6 +65,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: "Messages", href: "/messages", icon: MessageCircle, authOnly: true },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, authOnly: true },
     { name: "Payments", href: "/payments/history", icon: ShieldCheck, authOnly: true },
+    { name: "Contact", href: "/contact", icon: MessageCircle },
   ];
 
   return (
@@ -213,6 +214,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <li><Link href="/caregivers" className="hover:text-primary transition-colors">Browse Caregivers</Link></li>
                 <li><Link href="/post-request" className="hover:text-primary transition-colors">Post a Request</Link></li>
                 <li><Link href="/care-requests" className="hover:text-primary transition-colors">View Requests</Link></li>
+                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
               </ul>
             </div>
             <div>
