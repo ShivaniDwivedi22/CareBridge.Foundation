@@ -165,6 +165,10 @@ router.get("/caregivers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Caregiver not found" });
     return;
   }
+  if (!caregiver.isVerified) {
+    res.status(403).json({ error: "This profile is pending admin approval.", code: "PENDING_APPROVAL" });
+    return;
+  }
 
   const withCats = await attachCategories([caregiver]);
   res.json(GetCaregiverResponse.parse(withCats[0]));
