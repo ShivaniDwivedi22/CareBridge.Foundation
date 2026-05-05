@@ -27,8 +27,8 @@ import { TwoWeekPicker } from "@/components/two-week-picker";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HeartHandshake, User, Briefcase, ShieldCheck, Award, MapPin,
-  DollarSign, FileCheck, ChevronRight, ChevronLeft, LocateFixed, Loader2, Check
+  HeartHandshake, User, Briefcase, ShieldCheck, Award, MapPin, AlertTriangle,
+  // ...rest stays the same
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -932,7 +932,20 @@ export default function BecomeCaregiver() {
                                 </Button>
                               </div>
                             </FormControl>
-                            {geo.error && <p className="text-xs text-destructive">{geo.error}</p>}
+                                                        {geo.error && <p className="text-xs text-destructive">{geo.error}</p>}
+                            {geo.location &&
+                              form.watch("location") &&
+                              !locationsMatch(form.watch("location"), geo.location) && (
+                                <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                                  <div>
+                                    <strong>Heads up:</strong> Your detected location is{" "}
+                                    <strong>{geo.location}</strong>, but you entered{" "}
+                                    <strong>{form.watch("location")}</strong>. Confirm this is
+                                    correct so the right clients find you.
+                                  </div>
+                                </div>
+                              )}
                             <FormMessage />
                           </FormItem>
                         )} />
