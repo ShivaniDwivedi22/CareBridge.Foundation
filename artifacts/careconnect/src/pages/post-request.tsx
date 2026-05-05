@@ -1,3 +1,5 @@
+
+
 import { useCreateCareRequest, useListCategories } from "@/hooks/api-hooks";
 import { useLocation } from "wouter";
 import { useForm, useWatch } from "react-hook-form";
@@ -12,6 +14,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useUser } from "@clerk/react";
+import { useGeolocation } from "@/hooks/use-geolocation";
+import { LocateFixed, Loader2, AlertTriangle } from "lucide-react";
+
+function locationsMatch(entered: string, detected: string): boolean {
+  if (!entered || !detected) return true;
+  const norm = (s: string) =>
+    s.toLowerCase().replace(/[^a-z, ]/g, "").split(/[,\s]+/).filter((t) => t.length > 2);
+  const e = norm(entered);
+  const d = norm(detected);
+  return d.some((token) => e.some((et) => et === token || et.startsWith(token) || token.startsWith(et)));
+}
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -44,6 +59,8 @@ export default function PostRequest() {
   const { toast } = useToast();
   const { data: categories } = useListCategories();
   const createRequest = useCreateCareRequest();
+  const { user } = useUser();
+  const geo = useGeolocation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,6 +90,26 @@ export default function PostRequest() {
     }
   }, [watchedCategoryId, categories]);
 
+    // Auto-fill name from Clerk profile
+  useEffect(() => {
+    if (!user) return;
+    const fullName = user.fullName || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+    if (fullName && !form.getValues("seekerName")) {
+      form.setValue("seekerName", fullName, { shouldValidate: false });
+    }
+  }, [user]);
+
+  // Auto-fill location if user hasn't entered one
+  useEffect(() => {
+    if (geo.location && !form.getValues("location")) {
+      form.setValue("location", geo.location, { shouldValidate: true });
+    }
+  }, [geo.location]);
+
+  const watchedLocation = useWatch({ control: form.control, name: "location" });
+  const showLocationMismatch =
+    !!geo.location && !!watchedLocation && !locationsMatch(watchedLocation, geo.location);
+  
   function onSubmit(data: FormValues) {
     createRequest.mutate({
       data
@@ -119,7 +156,7 @@ export default function PostRequest() {
                     name="seekerName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Name</FormLabel>
+                        <FormLabel>Your Name <span className="text-destructive">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="John Doe" {...field} />
                         </FormControl>
@@ -128,20 +165,51 @@ export default function PostRequest() {
                     )}
                   />
 
-                  <FormField
+                    <FormField
                     control={form.control}
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <FormControl>
-                          <Input placeholder="City, State or Zip" {...field} />
-                        </FormControl>
+                        <FormLabel>
+                          Location <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input placeholder="City, State or Zip" {...field} />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={geo.detectLocation}
+                            disabled={geo.isDetecting}
+                            title="Detect my location"
+                          >
+                            {geo.isDetecting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <LocateFixed className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        {geo.error && (
+                          <p className="text-xs text-muted-foreground mt-1">{geo.error}</p>
+                        )}
+                        {showLocationMismatch && (
+                          <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                            <div>
+                              <strong>Heads up:</strong> Your detected location is{" "}
+                              <strong>{geo.location}</strong>, but you entered{" "}
+                              <strong>{watchedLocation}</strong>. Make sure this is correct so
+                              local caregivers can find your request.
+                            </div>
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
                 <FormField
                   control={form.control}
