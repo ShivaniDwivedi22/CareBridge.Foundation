@@ -27,8 +27,9 @@ import { TwoWeekPicker } from "@/components/two-week-picker";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HeartHandshake, User, Briefcase, ShieldCheck, Award, MapPin, AlertTriangle,
-  // ...rest stays the same
+  HeartHandshake, User, Briefcase, ShieldCheck, Award, MapPin,
+  DollarSign, FileCheck, ChevronRight, ChevronLeft, LocateFixed, Loader2, Check,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
