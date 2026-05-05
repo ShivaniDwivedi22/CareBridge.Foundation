@@ -1,5 +1,3 @@
-
-
 import { useCreateCareRequest, useListCategories } from "@/hooks/api-hooks";
 import { useLocation } from "wouter";
 import { useForm, useWatch } from "react-hook-form";
@@ -14,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { useUser } from "@clerk/react";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { LocateFixed, Loader2, AlertTriangle } from "lucide-react";
@@ -210,6 +207,7 @@ export default function PostRequest() {
                       </FormItem>
                     )}
                   />
+                </div>
 
                 <FormField
                   control={form.control}
