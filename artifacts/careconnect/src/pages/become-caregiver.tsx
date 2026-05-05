@@ -1,3 +1,11 @@
+function locationsMatch(entered: string, detected: string): boolean {
+  if (!entered || !detected) return true;
+  const norm = (s: string) =>
+    s.toLowerCase().replace(/[^a-z, ]/g, "").split(/[,\s]+/).filter((t) => t.length > 2);
+  const e = norm(entered);
+  const d = norm(detected);
+  return d.some((token) => e.some((et) => et === token || et.startsWith(token) || token.startsWith(et)));
+}
 //import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
@@ -200,6 +208,16 @@ export default function BecomeCaregiver() {
   useEffect(() => {
     if (geo.location) form.setValue("location", geo.location);
   }, [geo.location, form]);
+
+    // Auto-fill name from Clerk profile
+  useEffect(() => {
+    if (!user) return;
+    const fullName = user.fullName || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+    if (fullName && !form.getValues("name")) {
+      form.setValue("name", fullName, { shouldValidate: false });
+    }
+  }, [user]);
+  
 
   const stepFields: Record<number, (keyof FormValues)[]> = {
     1: ["name", "phone", "avatarUrl", "categoryIds"],
