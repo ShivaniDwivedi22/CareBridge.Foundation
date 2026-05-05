@@ -226,8 +226,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground">
+          <div className="mt-12 pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Care Bridge. All rights reserved.</p>
+            <div className="flex items-center gap-5">
+              <Link href="/terms" className="hover:text-primary transition-colors">Terms &amp; Conditions</Link>
+              <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+            </div>
           </div>
         </div>
       </footer>
