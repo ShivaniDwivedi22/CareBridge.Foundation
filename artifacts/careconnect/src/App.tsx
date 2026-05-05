@@ -1,3 +1,4 @@
+import ContactPage from "@/pages/contact";
 import { useEffect, useRef } from "react";
 import { ClerkProvider, useClerk, useAuth, SignIn, SignUp } from "@clerk/react";
 import { SignedIn, SignedOut } from "@/components/clerk-helpers";
@@ -67,6 +68,14 @@ function ClerkQueryClientCacheInvalidator() {
 }
 
 function Protected({ component: Component }: { component: React.ComponentType }) {
+  const { isLoaded } = useAuth();
+  if (!isLoaded) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
   return (
     <>
       <SignedIn><Component /></SignedIn>
@@ -87,6 +96,7 @@ function Router() {
         <Route path="/post-request">
           {() => <Protected component={PostRequest} />}
         </Route>
+        <Route path="/contact" component={ContactPage} />
         <Route path="/become-caregiver">
           {() => <Protected component={BecomeCaregiver} />}
         </Route>

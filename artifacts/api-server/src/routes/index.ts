@@ -9,6 +9,7 @@ import reviewsRouter from "./reviews";
 import conversationsRouter from "./conversations";
 import adminRouter from "./admin";
 import paymentsRouter from "./payments";
+import contactRouter from "./contact";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(reviewsRouter);
 router.use(conversationsRouter);
 router.use(adminRouter);
 router.use(paymentsRouter);
+router.use(contactRouter);
 
 export default router;
