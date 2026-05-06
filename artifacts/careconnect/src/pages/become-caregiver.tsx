@@ -1,3 +1,11 @@
+function locationsMatch(entered: string, detected: string): boolean {
+  if (!entered || !detected) return true;
+  const norm = (s: string) =>
+    s.toLowerCase().replace(/[^a-z, ]/g, "").split(/[,\s]+/).filter((t) => t.length > 2);
+  const e = norm(entered);
+  const d = norm(detected);
+  return d.some((token) => e.some((et) => et === token || et.startsWith(token) || token.startsWith(et)));
+}
 //import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useCreateCaregiver, useListCategories } from "@/hooks/api-hooks";
 import { useUser } from "@clerk/react";
@@ -20,7 +28,8 @@ import { useGeolocation } from "@/hooks/use-geolocation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HeartHandshake, User, Briefcase, ShieldCheck, Award, MapPin,
-  DollarSign, FileCheck, ChevronRight, ChevronLeft, LocateFixed, Loader2, Check
+  DollarSign, FileCheck, ChevronRight, ChevronLeft, LocateFixed, Loader2, Check,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -200,6 +209,16 @@ export default function BecomeCaregiver() {
   useEffect(() => {
     if (geo.location) form.setValue("location", geo.location);
   }, [geo.location, form]);
+
+    // Auto-fill name from Clerk profile
+  useEffect(() => {
+    if (!user) return;
+    const fullName = user.fullName || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+    if (fullName && !form.getValues("name")) {
+      form.setValue("name", fullName, { shouldValidate: false });
+    }
+  }, [user]);
+  
 
   const stepFields: Record<number, (keyof FormValues)[]> = {
     1: ["name", "phone", "avatarUrl", "categoryIds"],
@@ -914,7 +933,20 @@ export default function BecomeCaregiver() {
                                 </Button>
                               </div>
                             </FormControl>
-                            {geo.error && <p className="text-xs text-destructive">{geo.error}</p>}
+                                                        {geo.error && <p className="text-xs text-destructive">{geo.error}</p>}
+                            {geo.location &&
+                              form.watch("location") &&
+                              !locationsMatch(form.watch("location"), geo.location) && (
+                                <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                                  <div>
+                                    <strong>Heads up:</strong> Your detected location is{" "}
+                                    <strong>{geo.location}</strong>, but you entered{" "}
+                                    <strong>{form.watch("location")}</strong>. Confirm this is
+                                    correct so the right clients find you.
+                                  </div>
+                                </div>
+                              )}
                             <FormMessage />
                           </FormItem>
                         )} />

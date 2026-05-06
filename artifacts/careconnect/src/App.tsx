@@ -1,3 +1,4 @@
+import TermsPage from "@/pages/terms";
 import ContactPage from "@/pages/contact";
 import { useEffect, useRef } from "react";
 import { ClerkProvider, useClerk, useAuth, SignIn, SignUp } from "@clerk/react";
@@ -96,6 +97,7 @@ function Router() {
         <Route path="/post-request">
           {() => <Protected component={PostRequest} />}
         </Route>
+        <Route path="/terms" component={TermsPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/become-caregiver">
           {() => <Protected component={BecomeCaregiver} />}

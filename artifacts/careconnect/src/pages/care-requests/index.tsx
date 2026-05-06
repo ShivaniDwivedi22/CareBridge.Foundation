@@ -1,23 +1,90 @@
 import { useListCareRequests, useListCategories } from "@/hooks/api-hooks";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Clock, Calendar, ArrowRight, User, PlusCircle } from "lucide-react";
+import {
+  MapPin, Clock, Calendar, User, PlusCircle,
+  SlidersHorizontal, Search, X,
+} from "lucide-react";
 import { motion } from "framer-motion";
+
+type SortKey = "newest" | "budget-high" | "budget-low";
 
 export default function CareRequests() {
   const [categoryFilter, setCategoryFilter] = useState("all");
-  
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filter state
+  const [search, setSearch] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [minBudget, setMinBudget] = useState<string>("");
+  const [maxBudget, setMaxBudget] = useState<string>("");
+  const [minDuration, setMinDuration] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortKey>("newest");
+
   const { data: categories } = useListCategories();
   const { data: requests, isLoading } = useListCareRequests({
     category: categoryFilter !== "all" ? categoryFilter : undefined,
-    status: "open"
+    status: "open",
   });
+
+  const filtered = useMemo(() => {
+    if (!requests) return [];
+    let out = [...requests];
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      out = out.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(q) ||
+          r.description?.toLowerCase().includes(q) ||
+          r.location?.toLowerCase().includes(q),
+      );
+    }
+
+    if (locationQuery.trim()) {
+      const lq = locationQuery.toLowerCase();
+      out = out.filter((r) => r.location?.toLowerCase().includes(lq));
+    }
+
+    const minB = parseFloat(minBudget);
+    if (!isNaN(minB)) out = out.filter((r) => Number(r.budget) >= minB);
+
+    const maxB = parseFloat(maxBudget);
+    if (!isNaN(maxB)) out = out.filter((r) => Number(r.budget) <= maxB);
+
+    const minD = parseFloat(minDuration);
+    if (!isNaN(minD)) out = out.filter((r) => Number(r.durationHours ?? 0) >= minD);
+
+    if (sortBy === "budget-high") out.sort((a, b) => Number(b.budget) - Number(a.budget));
+    else if (sortBy === "budget-low") out.sort((a, b) => Number(a.budget) - Number(b.budget));
+    else out.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return out;
+  }, [requests, search, locationQuery, minBudget, maxBudget, minDuration, sortBy]);
+
+  const activeFilterCount =
+    (search ? 1 : 0) +
+    (locationQuery ? 1 : 0) +
+    (minBudget ? 1 : 0) +
+    (maxBudget ? 1 : 0) +
+    (minDuration ? 1 : 0) +
+    (sortBy !== "newest" ? 1 : 0);
+
+  const clearFilters = () => {
+    setSearch("");
+    setLocationQuery("");
+    setMinBudget("");
+    setMaxBudget("");
+    setMinDuration("");
+    setSortBy("newest");
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16 bg-muted/10 min-h-screen">
@@ -33,18 +100,19 @@ export default function CareRequests() {
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-        <Button 
-          variant={categoryFilter === "all" ? "default" : "outline"} 
+      {/* Category tabs */}
+      <div className="flex gap-3 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+        <Button
+          variant={categoryFilter === "all" ? "default" : "outline"}
           onClick={() => setCategoryFilter("all")}
           className="rounded-full"
         >
           All Requests
         </Button>
         {categories?.map((cat) => (
-          <Button 
+          <Button
             key={cat.id}
-            variant={categoryFilter === cat.slug ? "default" : "outline"} 
+            variant={categoryFilter === cat.slug ? "default" : "outline"}
             onClick={() => setCategoryFilter(cat.slug)}
             className="rounded-full whitespace-nowrap"
           >
@@ -53,26 +121,121 @@ export default function CareRequests() {
         ))}
       </div>
 
+      {/* Filter bar */}
+      <div className="mb-6 bg-background border border-border/50 rounded-xl shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 p-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search title, description, or location..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="budget-high">Budget: high to low</SelectItem>
+              <SelectItem value="budget-low">Budget: low to high</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters((s) => !s)}
+            className="gap-2"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <Badge className="ml-1 bg-primary text-primary-foreground h-5 min-w-5 px-1.5">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+          {activeFilterCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
+              <X className="w-3.5 h-3.5" /> Clear
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="border-t border-border/50 p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Location contains</Label>
+              <Input
+                placeholder="e.g. Toronto"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Min budget ($/hr)</Label>
+              <Input
+                type="number"
+                min="0"
+                placeholder="10"
+                value={minBudget}
+                onChange={(e) => setMinBudget(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Max budget ($/hr)</Label>
+              <Input
+                type="number"
+                min="0"
+                placeholder="100"
+                value={maxBudget}
+                onChange={(e) => setMaxBudget(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Min duration (hrs)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                placeholder="1"
+                value={minDuration}
+                onChange={(e) => setMinDuration(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Result count */}
+      {!isLoading && requests && (
+        <p className="text-sm text-muted-foreground mb-4">
+          Showing <strong>{filtered.length}</strong> of {requests.length} request{requests.length !== 1 ? "s" : ""}
+        </p>
+      )}
+
+      {/* Results */}
       {isLoading ? (
         <div className="grid md:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="h-64 rounded-xl" />
           ))}
         </div>
-      ) : requests?.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-background rounded-2xl border border-dashed border-border shadow-sm">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
             <Calendar className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">No active requests</h3>
-          <p className="text-muted-foreground mb-6">Check back later or adjust your filters.</p>
-          <Button variant="outline" onClick={() => setCategoryFilter("all")}>
-            Clear Filters
+          <h3 className="text-xl font-semibold mb-2">No matching requests</h3>
+          <p className="text-muted-foreground mb-6">Try adjusting your filters or category.</p>
+          <Button variant="outline" onClick={() => { clearFilters(); setCategoryFilter("all"); }}>
+            Clear all filters
           </Button>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
-          {requests?.map((request, index) => (
+          {filtered.map((request, index) => (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
