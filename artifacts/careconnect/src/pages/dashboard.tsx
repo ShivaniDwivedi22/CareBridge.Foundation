@@ -594,7 +594,7 @@ export default function Dashboard() {
                     { label: "Care Requests", value: stats?.totalCareRequests, loading: isLoadingStats, href: "/care-requests" },
                     { label: "Open Jobs",     value: stats?.openRequests,      loading: isLoadingStats, href: "/care-requests?status=open" },
                     { label: "Caregivers",    value: stats?.totalCaregivers,   loading: isLoadingStats, href: "/caregivers" },
-                    { label: "Bookings",      value: stats?.totalBookings,     loading: isLoadingStats, href: "/bookings" },
+                    { label: "Bookings",      value: stats?.totalBookings,     loading: isLoadingStats, href: "/dashboard" },
                   ].map(item => (
                     <Link key={item.label} href={item.href} className="flex items-center justify-between text-sm group hover:bg-muted/40 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
                       <span className="text-muted-foreground text-xs group-hover:text-primary transition-colors">{item.label}</span>
