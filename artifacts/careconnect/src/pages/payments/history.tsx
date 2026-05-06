@@ -100,10 +100,7 @@ export default function PaymentHistory() {
                         {p.refundStatus === "completed" ? " (processed)" : " (pending)"}
                       </p>
                     )}
-                    <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-                      <span>Platform fee: {fmt(p.platformFeeCents)}</span>
-                      <span>Provider payout: {fmt(p.providerPayoutCents)}</span>
-                    </div>
+                    
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-xl font-bold">{fmt(p.amountCents)}</p>

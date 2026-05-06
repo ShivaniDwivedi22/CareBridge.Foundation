@@ -264,7 +264,7 @@ export default function CaregiverDetail() {
                 </div>
                 <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                   <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>15% platform fee · Cancellation protected</span>
+                  <span>Cancellation protected · Secure payments</span>
                 </div>
               </div>
             </div>
