@@ -196,17 +196,8 @@ export default function CheckoutPage() {
                 <span className="text-muted-foreground">{serviceName}</span>
                 <span className="font-medium">{fmt(amountCents)}</span>
               </div>
-              {breakdown && (
+        {breakdown && (
                 <>
-                  <Separator />
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Platform fee (15%)</span>
-                    <span>{fmt(breakdown.platformFee)}</span>
-                  </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Provider receives</span>
-                    <span>{fmt(breakdown.providerPayout)}</span>
-                  </div>
                   <Separator />
                   <div className="flex justify-between font-semibold text-base">
                     <span>Total</span>
